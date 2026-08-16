@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, CalendarDays, X } from "lucide-react";
+import { CalendarDays, X } from "lucide-react";
 
 import { DashboardNavigation, type DashboardView } from "@/src/components/dashboard-navigation";
 import { CloudSyncControl } from "@/src/components/cloud-sync-control";
 import { OverviewView } from "@/src/components/overview-view";
+import { NotificationCenter } from "@/src/components/notification-center";
 import { SubjectView } from "@/src/components/subject-view";
 import { TopicWorkspace } from "@/src/components/topic-workspace";
 import { subjectById, topicById } from "@/src/data/curriculum";
@@ -67,10 +68,7 @@ export function StudyDashboard() {
           </div>
           <div className="flex items-center gap-2.5">
             <CloudSyncControl onRoleChange={setCloudRole} replaceState={replaceState} state={state} />
-            <button aria-label="Notifications" className="relative grid size-[38px] cursor-pointer place-items-center rounded-xl border border-study-line bg-white" type="button">
-              <Bell aria-hidden="true" size={18} />
-              <span className="absolute right-2 top-2 size-1.5 rounded-full border border-white bg-[#e17a49]" />
-            </button>
+            <NotificationCenter cloudRole={cloudRole} getProgress={getProgress} onOpenTopic={openTopic} sessions={state.sessions} />
             <div className="ml-1 grid size-[39px] place-items-center rounded-[13px] bg-[#3f766f] text-[11px] font-extrabold text-white" aria-hidden="true">{cloudRole === "teacher" ? "TR" : "RS"}</div>
             <div className="hidden min-[721px]:block"><strong className="block text-xs">{cloudRole === "teacher" ? "Teacher" : "Rohan"}</strong><span className="block text-[9px] text-study-muted">{cloudRole === "teacher" ? "Read-only view" : "AS student"}</span></div>
           </div>
