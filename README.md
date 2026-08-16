@@ -17,8 +17,11 @@ npm run dev
 
 ### Railway deployment
 
-The production build uses Next.js standalone output. Railway injects `PORT`, and
-the generated standalone server reads it automatically:
+The production build uses Next.js standalone output. The post-build step copies
+the compiled `.next/static` directory (and `public` when present) into the
+standalone bundle so the generated server can serve its CSS, JavaScript, fonts,
+and images. Railway injects `PORT`, and the standalone server reads it
+automatically:
 
 ```bash
 npm run build
