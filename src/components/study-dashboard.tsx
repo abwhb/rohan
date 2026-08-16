@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bell, CalendarDays, X } from "lucide-react";
 
 import { DashboardNavigation, type DashboardView } from "@/src/components/dashboard-navigation";
+import { CloudSyncControl } from "@/src/components/cloud-sync-control";
 import { OverviewView } from "@/src/components/overview-view";
 import { SubjectView } from "@/src/components/subject-view";
 import { TopicWorkspace } from "@/src/components/topic-workspace";
@@ -25,6 +26,7 @@ export function StudyDashboard() {
     recordLessonAttempt,
     recordQuestionAttempt,
     logSession,
+    replaceState,
   } = useStudyProgress();
 
   const selectedTopic = selectedTopicId ? topicById[selectedTopicId] : null;
@@ -62,6 +64,7 @@ export function StudyDashboard() {
             <b className="rounded-full bg-[#e4e9e4] px-[9px] py-1.5 text-[10px] text-[#49625f] min-[721px]:ml-2">45 days to Pure 1</b>
           </div>
           <div className="flex items-center gap-2.5">
+            <CloudSyncControl replaceState={replaceState} state={state} />
             <button aria-label="Notifications" className="relative grid size-[38px] cursor-pointer place-items-center rounded-xl border border-study-line bg-white" type="button">
               <Bell aria-hidden="true" size={18} />
               <span className="absolute right-2 top-2 size-1.5 rounded-full border border-white bg-[#e17a49]" />

@@ -3,47 +3,15 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 import { emptyTopicProgress } from "@/src/lib/progress";
+import { emptyStudyState, normaliseStudyState } from "@/src/lib/study-state";
 import type { StudyProgressState, StudySessionInput, TopicProgress } from "@/src/types/study";
 
 const STORAGE_KEY = "rohan-study-progress-v1";
 const CHANGE_EVENT = "rohan-study-progress-change";
 
-const emptyState: StudyProgressState = { version: 3, topics: {}, sessions: [] };
+const emptyState = emptyStudyState;
 let cachedRaw: string | null | undefined;
 let cachedState = emptyState;
-
-function normaliseTopicProgress(value: unknown): TopicProgress {
-  if (!value || typeof value !== "object") return emptyTopicProgress;
-
-  const progress = value as Partial<TopicProgress>;
-  return {
-    completedObjectives: Array.isArray(progress.completedObjectives) ? progress.completedObjectives : [],
-    completedWork: Array.isArray(progress.completedWork) ? progress.completedWork : [],
-    completedResources: Array.isArray(progress.completedResources) ? progress.completedResources : [],
-    lessonAttempts:
-      progress.lessonAttempts && typeof progress.lessonAttempts === "object" ? progress.lessonAttempts : {},
-    questionAttempts:
-      progress.questionAttempts && typeof progress.questionAttempts === "object" ? progress.questionAttempts : {},
-    latestScore: typeof progress.latestScore === "number" ? progress.latestScore : null,
-    attempts: typeof progress.attempts === "number" ? progress.attempts : 0,
-    updatedAt: typeof progress.updatedAt === "string" ? progress.updatedAt : null,
-  };
-}
-
-function normaliseState(value: unknown): StudyProgressState {
-  if (!value || typeof value !== "object") return emptyState;
-
-  const state = value as { topics?: unknown; sessions?: unknown };
-  if (!state.topics || typeof state.topics !== "object") return emptyState;
-
-  return {
-    version: 3,
-    topics: Object.fromEntries(
-      Object.entries(state.topics).map(([topicId, progress]) => [topicId, normaliseTopicProgress(progress)]),
-    ),
-    sessions: Array.isArray(state.sessions) ? state.sessions : [],
-  };
-}
 
 function getSnapshot(): StudyProgressState {
   if (typeof window === "undefined") return emptyState;
@@ -59,7 +27,7 @@ function getSnapshot(): StudyProgressState {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    cachedState = normaliseState(parsed);
+    cachedState = normaliseStudyState(parsed);
   } catch {
     cachedState = emptyState;
   }
@@ -228,6 +196,9 @@ export function useStudyProgress() {
   }, []);
 
   const resetProgress = useCallback(() => writeState(emptyState), []);
+  const replaceState = useCallback((nextState: StudyProgressState) => {
+    writeState(normaliseStudyState(nextState));
+  }, []);
 
   return {
     state,
@@ -239,6 +210,7 @@ export function useStudyProgress() {
     recordLessonAttempt,
     recordQuestionAttempt,
     logSession,
+    replaceState,
     resetProgress,
   };
 }
