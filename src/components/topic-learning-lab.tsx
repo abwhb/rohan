@@ -36,7 +36,7 @@ export function TopicLearningLab({
           </span>
           <span className={ui.subtleBadge}>{content.video.durationMinutes} min</span>
         </div>
-        <span className={cn(ui.eyebrow, "mt-5 block")}>Verified video · {content.video.provider}</span>
+        <span className={cn(ui.eyebrow, "mt-5 block")}>Verified lesson · {content.video.provider}</span>
         <h2 className="mt-1.5 text-[20px] font-bold leading-tight tracking-[-0.035em]">{content.video.title}</h2>
         <p className="mt-3 text-[10px] leading-relaxed text-study-muted">{content.video.whyItHelps}</p>
 

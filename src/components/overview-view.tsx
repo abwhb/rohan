@@ -1,9 +1,11 @@
 import { ArrowRight, BookCheck, Brain, Clock3, Flame, History, Target } from "lucide-react";
 
+import { DailyRetrievalPack } from "@/src/components/daily-retrieval-pack";
 import { ProgressRing } from "@/src/components/progress-ring";
 import { subjectById, subjects, topicById, topics, topicsBySubject } from "@/src/data/curriculum";
 import {
   buildDailyPlan,
+  buildDailyRetrievalTopics,
   DAILY_FOCUS_TARGET,
   getFocusedMinutes,
   getStudyStreak,
@@ -17,10 +19,11 @@ interface OverviewViewProps {
   getProgress: (topicId: string) => TopicProgress;
   onOpenTopic: (topic: StudyTopic) => void;
   onOpenSubject: (subjectId: SubjectId) => void;
+  onLessonAttempt: (topicId: string, lessonId: string, isCorrect: boolean) => void;
   sessions: StudySession[];
 }
 
-export function OverviewView({ getProgress, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
+export function OverviewView({ getProgress, onLessonAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
   let masteryTotal = 0;
   let masteredTopics = 0;
   let activeTopics = 0;
@@ -28,13 +31,15 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject, sessions
   for (const item of topics) {
     const progress = getProgress(item.id);
     const mastery = getTopicMastery(item, progress);
+    const status = getTopicStatus(item, progress);
     masteryTotal += mastery;
-    if (getTopicStatus(item, progress) === "mastered") masteredTopics += 1;
-    if (mastery > 0) activeTopics += 1;
+    if (status === "mastered") masteredTopics += 1;
+    if (status !== "not-started") activeTopics += 1;
   }
 
   const overallMastery = Math.round(masteryTotal / topics.length);
   const dailyPlan = buildDailyPlan(getProgress);
+  const retrievalTopics = buildDailyRetrievalTopics(getProgress);
   const continueTopic = dailyPlan[0]?.topic ?? topicById["p1-quadratics"];
   const focusedMinutes = getFocusedMinutes(sessions);
   const todaySessions = getTodaySessions(sessions);
@@ -152,6 +157,13 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject, sessions
           </div>
         </aside>
       </div>
+
+      <DailyRetrievalPack
+        getProgress={getProgress}
+        onLessonAttempt={onLessonAttempt}
+        onOpenTopic={onOpenTopic}
+        topics={retrievalTopics}
+      />
 
       <section className={cn(ui.panel, ui.panelPadding, "mt-5")}>
         <div className={ui.sectionHeading}>

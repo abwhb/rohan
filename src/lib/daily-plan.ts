@@ -1,4 +1,5 @@
-import { subjects, topicsBySubject } from "@/src/data/curriculum";
+import { subjects, topics, topicsBySubject } from "@/src/data/curriculum";
+import { topicLearningContent } from "@/src/data/topic-learning-content";
 import { getNextWork, getTopicMastery } from "@/src/lib/progress";
 import type { StudySession, StudyTopic, TopicProgress } from "@/src/types/study";
 
@@ -8,6 +9,8 @@ function hasActivity(progress: TopicProgress) {
   return (
     progress.completedObjectives.length > 0 ||
     progress.completedWork.length > 0 ||
+    progress.completedResources.length > 0 ||
+    Object.keys(progress.lessonAttempts).length > 0 ||
     progress.latestScore !== null
   );
 }
@@ -34,6 +37,50 @@ export function buildDailyPlan(getProgress: (topicId: string) => TopicProgress) 
       reason: active.length > 0 ? "Weak active topic" : "Next syllabus topic",
     };
   });
+}
+
+export function buildDailyRetrievalTopics(
+  getProgress: (topicId: string) => TopicProgress,
+  limit = 5,
+) {
+  const selected: StudyTopic[] = [];
+  const selectedIds = new Set<string>();
+
+  function addTopic(topic: StudyTopic) {
+    if (selected.length >= limit || selectedIds.has(topic.id) || !topicLearningContent[topic.id]) return;
+    selected.push(topic);
+    selectedIds.add(topic.id);
+  }
+
+  buildDailyPlan(getProgress).forEach(({ topic }) => addTopic(topic));
+
+  const remaining = topics
+    .filter((topic) => !selectedIds.has(topic.id) && topicLearningContent[topic.id])
+    .sort((left, right) => {
+      const leftProgress = getProgress(left.id);
+      const rightProgress = getProgress(right.id);
+      const leftContent = topicLearningContent[left.id];
+      const rightContent = topicLearningContent[right.id];
+      const leftLesson = leftContent
+        ? leftProgress.lessonAttempts[leftContent.urduLesson.id]
+        : undefined;
+      const rightLesson = rightContent
+        ? rightProgress.lessonAttempts[rightContent.urduLesson.id]
+        : undefined;
+      const leftAccuracy = leftLesson ? leftLesson.correct / leftLesson.attempts : 1;
+      const rightAccuracy = rightLesson ? rightLesson.correct / rightLesson.attempts : 1;
+
+      if (leftLesson && rightLesson && leftAccuracy !== rightAccuracy) return leftAccuracy - rightAccuracy;
+      if (leftLesson && !rightLesson && leftAccuracy < 1) return -1;
+      if (!leftLesson && rightLesson && rightAccuracy < 1) return 1;
+
+      const masteryDifference =
+        getTopicMastery(left, leftProgress) - getTopicMastery(right, rightProgress);
+      return masteryDifference || left.number - right.number || left.title.localeCompare(right.title);
+    });
+
+  remaining.forEach(addTopic);
+  return selected;
 }
 
 export function getLocalDateKey(date = new Date()) {

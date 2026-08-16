@@ -35,13 +35,15 @@ Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 
 - complete subject and topic navigation;
 - an adaptive daily queue that selects the weakest active topic in each subject;
-- verified Khan Academy and Cambridge-focused video resources with compulsory active follow-ups;
-- interactive Urdu explanations and saved quick-check attempts for the starter Math, Mechanics, and Business topics;
+- verified Khan Academy and Cambridge-focused learning resources with compulsory active follow-ups for all 18 topics;
+- interactive Urdu explanations and saved quick-check attempts for every Math, Mechanics, and Business topic;
+- a five-question daily retrieval pack that balances subjects and prioritises weak recall;
 - a focused-session log for minutes, questions, accuracy, mistake type, and a correction note;
 - daily focused-minute totals, study streaks, recent activity, and a queue that updates after each saved session;
 - objective-level topic checklists;
 - topic-specific retrieval, teaching, exam-practice, and correction blocks;
 - scored topic reviews and calculated mastery;
+- bounded learning evidence from completed resources and Urdu checks, with exam practice and marked scores retaining most of the mastery weight;
 - status filters for not started, learning, exam practice, and mastered; and
 - versioned local progress storage in the browser.
 

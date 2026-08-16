@@ -105,6 +105,10 @@ export function StudyDashboard() {
           ) : activeView === "overview" ? (
             <OverviewView
               getProgress={getProgress}
+              onLessonAttempt={(topicId, lessonId, isCorrect) => {
+                recordLessonAttempt(topicId, lessonId, isCorrect);
+                setNotice(isCorrect ? "Retrieval answer correct — evidence saved." : "Attempt saved. This topic will move up future retrieval packs.");
+              }}
               onOpenSubject={openSubject}
               onOpenTopic={openTopic}
               sessions={state.sessions}
