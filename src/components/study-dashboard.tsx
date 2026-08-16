@@ -10,12 +10,13 @@ import { SubjectView } from "@/src/components/subject-view";
 import { TopicWorkspace } from "@/src/components/topic-workspace";
 import { subjectById, topicById } from "@/src/data/curriculum";
 import { useStudyProgress } from "@/src/hooks/use-study-progress";
-import type { StudyTopic, SubjectId } from "@/src/types/study";
+import type { CloudRole, StudyTopic, SubjectId } from "@/src/types/study";
 
 export function StudyDashboard() {
   const [activeView, setActiveView] = useState<DashboardView>("overview");
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [cloudRole, setCloudRole] = useState<CloudRole | null>(null);
   const {
     state,
     getProgress,
@@ -30,6 +31,7 @@ export function StudyDashboard() {
   } = useStudyProgress();
 
   const selectedTopic = selectedTopicId ? topicById[selectedTopicId] : null;
+  const teacherReadOnlyMessage = "Teacher cloud view is read-only. Rohan's saved record was not changed.";
 
   function navigate(view: DashboardView) {
     setActiveView(view);
@@ -64,13 +66,13 @@ export function StudyDashboard() {
             <b className="rounded-full bg-[#e4e9e4] px-[9px] py-1.5 text-[10px] text-[#49625f] min-[721px]:ml-2">45 days to Pure 1</b>
           </div>
           <div className="flex items-center gap-2.5">
-            <CloudSyncControl replaceState={replaceState} state={state} />
+            <CloudSyncControl onRoleChange={setCloudRole} replaceState={replaceState} state={state} />
             <button aria-label="Notifications" className="relative grid size-[38px] cursor-pointer place-items-center rounded-xl border border-study-line bg-white" type="button">
               <Bell aria-hidden="true" size={18} />
               <span className="absolute right-2 top-2 size-1.5 rounded-full border border-white bg-[#e17a49]" />
             </button>
-            <div className="ml-1 grid size-[39px] place-items-center rounded-[13px] bg-[#3f766f] text-[11px] font-extrabold text-white" aria-hidden="true">RS</div>
-            <div className="hidden min-[721px]:block"><strong className="block text-xs">Rohan</strong><span className="block text-[9px] text-study-muted">AS student</span></div>
+            <div className="ml-1 grid size-[39px] place-items-center rounded-[13px] bg-[#3f766f] text-[11px] font-extrabold text-white" aria-hidden="true">{cloudRole === "teacher" ? "TR" : "RS"}</div>
+            <div className="hidden min-[721px]:block"><strong className="block text-xs">{cloudRole === "teacher" ? "Teacher" : "Rohan"}</strong><span className="block text-[9px] text-study-muted">{cloudRole === "teacher" ? "Read-only view" : "AS student"}</span></div>
           </div>
         </header>
 
@@ -80,31 +82,43 @@ export function StudyDashboard() {
               key={selectedTopic.id}
               onBack={closeTopic}
               onSaveScore={(score) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
                 saveScore(selectedTopic.id, score);
                 setNotice(`${selectedTopic.title} score saved. Your mastery has been recalculated.`);
               }}
               onCompleteResource={(resourceId) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
                 completeResource(selectedTopic.id, resourceId);
                 setNotice("Learning resource completed. Now use retrieval or exam practice to turn it into marks.");
               }}
               onLessonAttempt={(lessonId, isCorrect) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
                 recordLessonAttempt(selectedTopic.id, lessonId, isCorrect);
                 setNotice(isCorrect ? "Urdu quick check correct — evidence saved." : "Attempt saved. Review the steps and try again.");
               }}
               onLogSession={(session) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
                 logSession(session);
                 setNotice(`${session.focusedMinutes} focused minutes saved for ${selectedTopic.title}.`);
               }}
-              onToggleObjective={(objective) => toggleObjective(selectedTopic.id, objective)}
-              onToggleWork={(workId) => toggleWork(selectedTopic.id, workId)}
+              onToggleObjective={(objective) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
+                toggleObjective(selectedTopic.id, objective);
+              }}
+              onToggleWork={(workId) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
+                toggleWork(selectedTopic.id, workId);
+              }}
               progress={getProgress(selectedTopic.id)}
               subject={subjectById[selectedTopic.subjectId]}
               topic={selectedTopic}
             />
           ) : activeView === "overview" ? (
             <OverviewView
+              cloudRole={cloudRole}
               getProgress={getProgress}
               onQuestionAttempt={(topicId, questionId, isCorrect) => {
+                if (cloudRole === "teacher") return setNotice(teacherReadOnlyMessage);
                 recordQuestionAttempt(topicId, questionId, isCorrect);
                 setNotice(isCorrect ? "Retrieval answer correct — evidence saved." : "Attempt saved. This topic will move up future retrieval packs.");
               }}

@@ -1,4 +1,5 @@
 export type SubjectId = "pure-1" | "mechanics" | "business";
+export type CloudRole = "student" | "teacher";
 
 export type TopicStatus = "not-started" | "learning" | "exam-practice" | "mastered";
 

@@ -50,7 +50,8 @@ Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 - bounded learning evidence from completed resources and Urdu checks, with exam practice and marked scores retaining most of the mastery weight;
 - status filters for not started, learning, exam practice, and mastered;
 - versioned local progress storage in the browser, including separate Urdu-lesson and daily-question evidence; and
-- protected PostgreSQL cloud sync with separate student write access and teacher read-only access, while retaining and safely merging the device copy for offline use.
+- protected PostgreSQL cloud sync with separate student write access and teacher read-only access, while retaining and safely merging the device copy for offline use; and
+- a protected teacher briefing with seven-day minutes, accuracy, active days, mistake patterns, and a weakest-topic intervention queue.
 
 The interface follows the Next.js App Router architecture so Gemini audio can remain behind a secure server boundary when in-dashboard playback is connected.
 

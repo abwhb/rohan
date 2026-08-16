@@ -2,6 +2,7 @@ import { ArrowRight, BookCheck, Brain, Clock3, Flame, History, Target } from "lu
 
 import { DailyRetrievalPack } from "@/src/components/daily-retrieval-pack";
 import { ProgressRing } from "@/src/components/progress-ring";
+import { TeacherInsights } from "@/src/components/teacher-insights";
 import { subjectById, subjects, topicById, topics, topicsBySubject } from "@/src/data/curriculum";
 import {
   buildDailyPlan,
@@ -13,17 +14,18 @@ import {
 } from "@/src/lib/daily-plan";
 import { getTopicMastery, getTopicStatus } from "@/src/lib/progress";
 import { cn, ui } from "@/src/lib/ui";
-import type { StudySession, StudyTopic, SubjectId, TopicProgress } from "@/src/types/study";
+import type { CloudRole, StudySession, StudyTopic, SubjectId, TopicProgress } from "@/src/types/study";
 
 interface OverviewViewProps {
   getProgress: (topicId: string) => TopicProgress;
+  cloudRole: CloudRole | null;
   onOpenTopic: (topic: StudyTopic) => void;
   onOpenSubject: (subjectId: SubjectId) => void;
   onQuestionAttempt: (topicId: string, questionId: string, isCorrect: boolean) => void;
   sessions: StudySession[];
 }
 
-export function OverviewView({ getProgress, onQuestionAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
+export function OverviewView({ cloudRole, getProgress, onQuestionAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
   let masteryTotal = 0;
   let masteredTopics = 0;
   let activeTopics = 0;
@@ -89,6 +91,8 @@ export function OverviewView({ getProgress, onQuestionAttempt, onOpenTopic, onOp
           <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Mastered</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">{masteredTopics}</strong><small className="block truncate text-[9px] text-[#85928f]">Target: 80%+ evidence</small></div>
         </article>
       </section>
+
+      {cloudRole === "teacher" ? <TeacherInsights getProgress={getProgress} sessions={sessions} /> : null}
 
       <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
         <section className={cn(ui.panel, ui.panelPadding)}>
@@ -159,12 +163,14 @@ export function OverviewView({ getProgress, onQuestionAttempt, onOpenTopic, onOp
         </aside>
       </div>
 
-      <DailyRetrievalPack
-        getProgress={getProgress}
-        onQuestionAttempt={onQuestionAttempt}
-        onOpenTopic={onOpenTopic}
-        topics={retrievalTopics}
-      />
+      {cloudRole !== "teacher" ? (
+        <DailyRetrievalPack
+          getProgress={getProgress}
+          onQuestionAttempt={onQuestionAttempt}
+          onOpenTopic={onOpenTopic}
+          topics={retrievalTopics}
+        />
+      ) : null}
 
       <section className={cn(ui.panel, ui.panelPadding, "mt-5")}>
         <div className={ui.sectionHeading}>

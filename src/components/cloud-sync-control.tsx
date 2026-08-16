@@ -5,12 +5,12 @@ import { Check, Cloud, CloudOff, LoaderCircle, LogOut, RefreshCw, ShieldCheck, X
 
 import { mergeStudyStates, normaliseStudyState } from "@/src/lib/study-state";
 import { cn, ui } from "@/src/lib/ui";
-import type { StudyProgressState } from "@/src/types/study";
+import type { CloudRole, StudyProgressState } from "@/src/types/study";
 
-type StudyRole = "student" | "teacher";
 type SyncStatus = "checking" | "device" | "idle" | "saving" | "saved" | "error";
 
 interface CloudSyncControlProps {
+  onRoleChange: (role: CloudRole | null) => void;
   replaceState: (state: StudyProgressState) => void;
   state: StudyProgressState;
 }
@@ -22,9 +22,9 @@ interface CloudResponse {
   error?: string;
 }
 
-export function CloudSyncControl({ replaceState, state }: CloudSyncControlProps) {
+export function CloudSyncControl({ onRoleChange, replaceState, state }: CloudSyncControlProps) {
   const [configured, setConfigured] = useState(false);
-  const [role, setRole] = useState<StudyRole | null>(null);
+  const [role, setRole] = useState<CloudRole | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("checking");
   const [panelOpen, setPanelOpen] = useState(false);
   const [accessCode, setAccessCode] = useState("");
@@ -37,7 +37,7 @@ export function CloudSyncControl({ replaceState, state }: CloudSyncControlProps)
   const savingRef = useRef(false);
   stateRef.current = state;
 
-  const loadCloud = useCallback(async (activeRole: StudyRole) => {
+  const loadCloud = useCallback(async (activeRole: CloudRole) => {
     setSyncStatus("saving");
     setMessage(null);
     const response = await fetch("/api/progress", { cache: "no-store" });
@@ -87,7 +87,7 @@ export function CloudSyncControl({ replaceState, state }: CloudSyncControlProps)
       try {
         const response = await fetch("/api/auth/status", { cache: "no-store" });
         if (!response.ok) throw new Error("Cloud status unavailable.");
-        const status = await response.json() as { configured: boolean; role: StudyRole | null };
+        const status = await response.json() as { configured: boolean; role: CloudRole | null };
         if (cancelled) return;
         setConfigured(status.configured);
         setRole(status.role);
@@ -111,6 +111,10 @@ export function CloudSyncControl({ replaceState, state }: CloudSyncControlProps)
     void checkStatus();
     return () => { cancelled = true; };
   }, [loadCloud]);
+
+  useEffect(() => {
+    onRoleChange(role);
+  }, [onRoleChange, role]);
 
   useEffect(() => {
     if (role !== "student" || !initialisedRef.current) return;
@@ -165,7 +169,7 @@ export function CloudSyncControl({ replaceState, state }: CloudSyncControlProps)
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const result = await response.json() as { role?: StudyRole; error?: string };
+      const result = await response.json() as { role?: CloudRole; error?: string };
       if (!response.ok || !result.role) throw new Error(result.error || "Login failed.");
       setAccessCode("");
       setRole(result.role);
