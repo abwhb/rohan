@@ -17,6 +17,7 @@ import {
 
 import { ProgressRing } from "@/src/components/progress-ring";
 import { getTopicMastery, getTopicStatus, statusLabels } from "@/src/lib/progress";
+import { cn, statusPillClass, ui } from "@/src/lib/ui";
 import type { StudySubject, StudyTopic, TopicProgress, WorkBlock } from "@/src/types/study";
 
 interface TopicWorkspaceProps {
@@ -57,84 +58,96 @@ export function TopicWorkspace({
 
   return (
     <section
-      className="topic-workspace"
+      className="[--subject-accent:#31736d] [--subject-soft:#dff2ed]"
       style={{ "--subject-accent": subject.accent, "--subject-soft": subject.softAccent } as React.CSSProperties}
     >
-      <button className="back-button" onClick={onBack} type="button">
+      <button className="mb-[18px] inline-flex cursor-pointer items-center gap-[7px] border-0 bg-transparent py-[7px] text-[10px] font-extrabold text-[#607470]" onClick={onBack} type="button">
         <ArrowLeft aria-hidden="true" size={17} /> Back to {subject.shortName}
       </button>
 
-      <header className="topic-workspace__header">
-        <div className="topic-workspace__title">
-          <span className="eyebrow">Topic {topic.number} · {subject.paper}</span>
-          <h1>{topic.title}</h1>
-          <p>{topic.description}</p>
-          <div className="topic-workspace__badges">
-            <span className={`status-pill status-pill--${status}`}>{statusLabels[status]}</span>
-            <span>{progress.completedObjectives.length}/{topic.objectives.length} objectives checked</span>
-            <span>{completedMinutes}/{totalMinutes} focused minutes</span>
+      <header className="grid grid-cols-1 items-center gap-10 rounded-[23px] border border-white/80 p-6 [background:linear-gradient(135deg,var(--subject-soft),#fff_76%)] min-[721px]:grid-cols-[minmax(0,1fr)_auto] min-[721px]:rounded-[27px] min-[721px]:px-10 min-[721px]:py-[35px]">
+        <div>
+          <span className={ui.eyebrow}>Topic {topic.number} · {subject.paper}</span>
+          <h1 className="my-2 text-4xl font-bold leading-[1.02] tracking-[-0.055em] text-[#17302f] min-[721px]:mb-[15px] min-[721px]:text-[clamp(34px,4.2vw,57px)]">{topic.title}</h1>
+          <p className="mb-[18px] max-w-[790px] text-xs text-[#5f7470]">{topic.description}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={statusPillClass(status)}>{statusLabels[status]}</span>
+            <span className="rounded-full bg-white/75 px-[9px] py-1.5 text-[8px] font-bold text-[#647874]">{progress.completedObjectives.length}/{topic.objectives.length} objectives checked</span>
+            <span className="rounded-full bg-white/75 px-[9px] py-1.5 text-[8px] font-bold text-[#647874]">{completedMinutes}/{totalMinutes} focused minutes</span>
           </div>
         </div>
         <ProgressRing accent={subject.accent} size="large" value={mastery} />
       </header>
 
-      <div className="topic-workspace__grid">
-        <div className="topic-workspace__main">
-          <section className="panel workspace-panel">
-            <div className="section-heading">
+      <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.65fr)]">
+        <div className="grid content-start gap-5">
+          <section className={cn(ui.panel, ui.panelPadding)}>
+            <div className={ui.sectionHeading}>
               <div>
-                <span className="eyebrow">Knowledge map</span>
-                <h2>Topic objectives</h2>
+                <span className={ui.eyebrow}>Knowledge map</span>
+                <h2 className={ui.sectionTitle}>Topic objectives</h2>
               </div>
-              <span className="completion-fraction">{progress.completedObjectives.length}/{topic.objectives.length}</span>
+              <span className={ui.subtleBadge}>{progress.completedObjectives.length}/{topic.objectives.length}</span>
             </div>
 
-            <div className="checklist">
+            <div className="grid gap-2">
               {topic.objectives.map((objective, index) => {
                 const isComplete = progress.completedObjectives.includes(objective);
                 return (
-                  <label className={isComplete ? "check-row check-row--complete" : "check-row"} key={objective}>
+                  <label
+                    className={cn(
+                      "grid min-h-[47px] cursor-pointer grid-cols-[auto_auto_1fr] items-center gap-[11px] rounded-xl border px-3 py-2.5 text-[10px] transition hover:border-[var(--subject-accent)]",
+                      isComplete
+                        ? "border-transparent bg-[var(--subject-soft)] text-[#6f7f7c]"
+                        : "border-[#edf0ed] bg-[#f8f9f7] text-[#425451]",
+                    )}
+                    key={objective}
+                  >
                     <input
+                      className="absolute size-px overflow-hidden opacity-0"
                       checked={isComplete}
                       onChange={() => onToggleObjective(objective)}
                       type="checkbox"
                     />
-                    <span className="custom-check" aria-hidden="true"><Check size={14} /></span>
-                    <span className="check-row__number">{String(index + 1).padStart(2, "0")}</span>
-                    <span>{objective}</span>
+                    <span className={cn("grid size-[22px] place-items-center rounded-[7px] border", isComplete ? "border-[var(--subject-accent)] bg-[var(--subject-accent)] text-white" : "border-[#cdd7d3] bg-white text-transparent")} aria-hidden="true"><Check size={14} /></span>
+                    <span className="text-[8px] font-extrabold tracking-[0.08em] text-[#8c9a97]">{String(index + 1).padStart(2, "0")}</span>
+                    <span className={isComplete ? "line-through decoration-[#50645f]/35" : undefined}>{objective}</span>
                   </label>
                 );
               })}
             </div>
           </section>
 
-          <section className="panel workspace-panel">
-            <div className="section-heading">
+          <section className={cn(ui.panel, ui.panelPadding)}>
+            <div className={ui.sectionHeading}>
               <div>
-                <span className="eyebrow">Active practice</span>
-                <h2>Topic work blocks</h2>
+                <span className={ui.eyebrow}>Active practice</span>
+                <h2 className={ui.sectionTitle}>Topic work blocks</h2>
               </div>
-              <span className="time-badge">{totalMinutes} min total</span>
+              <span className={ui.subtleBadge}>{totalMinutes} min total</span>
             </div>
 
-            <div className="work-list">
+            <div className="grid gap-[9px]">
               {topic.work.map((item) => {
                 const isComplete = progress.completedWork.includes(item.id);
                 const Icon = workIcons[item.kind];
                 return (
                   <button
-                    className={isComplete ? "work-row work-row--complete" : "work-row"}
+                    className={cn(
+                      "grid w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-[13px] rounded-[14px] border border-[#e5ebe7] p-[13px] text-left transition hover:border-[var(--subject-accent)] min-[721px]:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
+                      isComplete ? "bg-[#f6faf7]" : "bg-white",
+                    )}
                     key={item.id}
                     onClick={() => onToggleWork(item.id)}
                     type="button"
                   >
-                    <span className="work-row__icon"><Icon aria-hidden="true" size={18} /></span>
-                    <span className="work-row__copy">
-                      <strong>{item.label}</strong>
-                      <span>{item.description}</span>
+                    <span className="grid size-[38px] place-items-center rounded-[11px] bg-[var(--subject-soft)] text-[var(--subject-accent)]"><Icon aria-hidden="true" size={18} /></span>
+                    <span className="min-w-0">
+                      <strong className={cn("block text-[11px]", isComplete && "text-[#70817e] line-through")}>{item.label}</strong>
+                      <span className="mt-0.5 block text-[9px] text-study-muted min-[721px]:truncate">{item.description}</span>
                     </span>
-                    <span className="work-row__time">{item.minutes} min</span>
-                    <span className="work-row__check" aria-hidden="true"><Check size={15} /></span>
+                    <span className="hidden whitespace-nowrap text-[9px] font-extrabold text-[#70817e] min-[721px]:inline">{item.minutes} min</span>
+                    <span className={cn("grid size-[23px] place-items-center rounded-[7px] border", isComplete ? "border-[var(--subject-accent)] bg-[var(--subject-accent)] text-white" : "border-[#d1dad6] text-transparent")} aria-hidden="true"><Check size={15} /></span>
                   </button>
                 );
               })}
@@ -142,52 +155,53 @@ export function TopicWorkspace({
           </section>
         </div>
 
-        <aside className="topic-workspace__aside">
-          <section className="panel aside-card exam-focus-card">
-            <span className="aside-card__icon"><CircleAlert aria-hidden="true" size={19} /></span>
-            <span className="eyebrow">Exam focus</span>
-            <h2>Protect these marks</h2>
-            <ul>
-              {topic.examFocus.map((item) => <li key={item}>{item}</li>)}
+        <aside className="grid grid-cols-1 content-start gap-5 min-[721px]:grid-cols-2 min-[961px]:grid-cols-3 min-[1181px]:grid-cols-1">
+          <section className={cn(ui.panel, ui.panelPadding, "relative overflow-hidden")}>
+            <span className="mb-[18px] grid size-[39px] place-items-center rounded-xl bg-[var(--subject-soft)] text-[var(--subject-accent)]"><CircleAlert aria-hidden="true" size={19} /></span>
+            <span className={ui.eyebrow}>Exam focus</span>
+            <h2 className={ui.sectionTitle}>Protect these marks</h2>
+            <ul className="mt-[18px] grid list-none gap-2.5 p-0">
+              {topic.examFocus.map((item) => <li className="relative pl-[17px] text-[10px] text-[#5e706d] before:absolute before:left-0 before:top-[0.62em] before:size-1.5 before:rotate-45 before:rounded-sm before:bg-[var(--subject-accent)] before:content-['']" key={item}>{item}</li>)}
             </ul>
           </section>
 
           <form
-            className="panel aside-card score-card"
+            className={cn(ui.panel, ui.panelPadding, "relative overflow-hidden")}
             onSubmit={(event) => {
               event.preventDefault();
               onSaveScore(score);
             }}
           >
-            <span className="aside-card__icon"><Sparkles aria-hidden="true" size={19} /></span>
-            <span className="eyebrow">Evidence</span>
-            <h2>Record latest score</h2>
-            <p>Use the percentage from a marked topic test or timed set.</p>
-            <div className="score-input-row">
+            <span className="mb-[18px] grid size-[39px] place-items-center rounded-xl bg-[var(--subject-soft)] text-[var(--subject-accent)]"><Sparkles aria-hidden="true" size={19} /></span>
+            <span className={ui.eyebrow}>Evidence</span>
+            <h2 className={ui.sectionTitle}>Record latest score</h2>
+            <p className="mb-[18px] mt-[9px] text-[10px] text-study-muted">Use the percentage from a marked topic test or timed set.</p>
+            <div className="mb-3.5 grid grid-cols-[1fr_auto] items-center gap-3.5">
               <input
                 aria-label="Latest topic score"
+                className="w-full accent-[var(--subject-accent)]"
                 max="100"
                 min="0"
                 onChange={(event) => setScore(Number(event.target.value))}
                 type="range"
                 value={score}
               />
-              <output>{score}%</output>
+              <output className="min-w-[52px] text-right text-[21px] font-[850] tracking-[-0.04em] text-[var(--subject-accent)]">{score}%</output>
             </div>
-            <button className="secondary-button secondary-button--wide" type="submit">
+            <button className={cn(ui.secondaryButton, "w-full")} type="submit">
               <Save aria-hidden="true" size={16} /> Save score
             </button>
-            <small>{progress.attempts > 0 ? `${progress.attempts} scored attempt${progress.attempts === 1 ? "" : "s"}` : "No scored attempt yet"}</small>
+            <small className="mt-2.5 block text-center text-[8px] text-[#879592]">{progress.attempts > 0 ? `${progress.attempts} scored attempt${progress.attempts === 1 ? "" : "s"}` : "No scored attempt yet"}</small>
           </form>
 
-          <section className="voice-card">
-            <span className="voice-card__icon"><Headphones aria-hidden="true" size={21} /></span>
+          <section className="grid grid-cols-[auto_1fr] gap-[13px] rounded-[22px] bg-[#213e3b] p-[21px] text-[#f5faf8] shadow-[0_18px_45px_rgba(34,55,56,0.08)] min-[721px]:max-[960px]:col-span-full">
+            <span className="grid size-[42px] place-items-center rounded-[13px] bg-study-lime text-[#1e3936]"><Headphones aria-hidden="true" size={21} /></span>
             <div>
-              <span className="eyebrow">Gemini voice</span>
-              <h2>Listen before practice</h2>
-              <p>Generate a short lesson mapped to this topic&apos;s objectives and common mistakes.</p>
+              <span className={cn(ui.eyebrow, "text-study-lime")}>Gemini voice</span>
+              <h2 className="mt-1 text-[17px] font-bold leading-[1.2] tracking-[-0.03em]">Listen before practice</h2>
+              <p className="mt-[7px] text-[9px] text-[#adc1bc]">Generate a short lesson mapped to this topic&apos;s objectives and common mistakes.</p>
             </div>
-            <button onClick={onVoiceRequested} type="button">
+            <button className="col-span-full mt-1 flex w-full cursor-pointer items-center justify-between rounded-[11px] border-0 bg-study-lime px-3 py-2.5 text-[10px] font-[850] text-[#213e3b]" onClick={onVoiceRequested} type="button">
               Prepare lesson <ChevronRight aria-hidden="true" size={17} />
             </button>
           </section>

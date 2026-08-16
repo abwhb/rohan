@@ -41,27 +41,27 @@ export function StudyDashboard() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen min-[721px]:grid min-[721px]:grid-cols-[88px_minmax(0,1fr)] min-[961px]:grid-cols-[266px_minmax(0,1fr)]">
       <DashboardNavigation activeView={activeView} onNavigate={navigate} />
 
-      <main className="dashboard-main">
-        <header className="topbar">
-          <div className="topbar__date">
+      <main className="min-w-0">
+        <header className="static z-10 flex min-h-[58px] items-center justify-between border-b border-[#c9d3cf]/70 bg-study-canvas/90 px-[18px] py-2.5 backdrop-blur-[18px] min-[721px]:sticky min-[721px]:top-0 min-[721px]:min-h-[76px] min-[721px]:px-[clamp(24px,4vw,58px)] min-[721px]:py-3.5">
+          <div className="flex items-center gap-[9px] text-xs text-study-muted">
             <CalendarDays aria-hidden="true" size={17} />
-            <span>Sunday, 16 August</span>
-            <b>45 days to Pure 1</b>
+            <span className="hidden min-[721px]:inline">Sunday, 16 August</span>
+            <b className="rounded-full bg-[#e4e9e4] px-[9px] py-1.5 text-[10px] text-[#49625f] min-[721px]:ml-2">45 days to Pure 1</b>
           </div>
-          <div className="topbar__account">
-            <button aria-label="Notifications" className="icon-button" type="button">
+          <div className="flex items-center gap-2.5">
+            <button aria-label="Notifications" className="relative grid size-[38px] cursor-pointer place-items-center rounded-xl border border-study-line bg-white" type="button">
               <Bell aria-hidden="true" size={18} />
-              <span className="notification-dot" />
+              <span className="absolute right-2 top-2 size-1.5 rounded-full border border-white bg-[#e17a49]" />
             </button>
-            <div className="student-avatar" aria-hidden="true">RS</div>
-            <div className="student-name"><strong>Rohan</strong><span>AS student</span></div>
+            <div className="ml-1 grid size-[39px] place-items-center rounded-[13px] bg-[#3f766f] text-[11px] font-extrabold text-white" aria-hidden="true">RS</div>
+            <div className="hidden min-[721px]:block"><strong className="block text-xs">Rohan</strong><span className="block text-[9px] text-study-muted">AS student</span></div>
           </div>
         </header>
 
-        <div className="dashboard-content">
+        <div className="mx-auto w-full max-w-[1480px] px-[18px] pb-[55px] pt-[22px] min-[721px]:px-[clamp(24px,4vw,58px)] min-[721px]:pb-[70px] min-[721px]:pt-[34px]">
           {selectedTopic ? (
             <TopicWorkspace
               key={selectedTopic.id}
@@ -94,9 +94,9 @@ export function StudyDashboard() {
       </main>
 
       {notice ? (
-        <div className="toast" role="status">
+        <div className="fixed bottom-[18px] left-[18px] right-[18px] z-50 flex items-center gap-3.5 rounded-[14px] border border-white/10 bg-[#1b3437] py-3.5 pl-[17px] pr-[15px] text-[10px] text-[#eff7f4] shadow-[0_18px_50px_rgba(20,42,43,0.25)] min-[721px]:bottom-6 min-[721px]:left-auto min-[721px]:right-6 min-[721px]:max-w-[min(440px,calc(100vw-40px))]" role="status">
           <span>{notice}</span>
-          <button aria-label="Dismiss message" onClick={() => setNotice(null)} type="button"><X size={16} /></button>
+          <button aria-label="Dismiss message" className="grid size-[26px] shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-white/[0.08] text-[#c8d7d3]" onClick={() => setNotice(null)} type="button"><X size={16} /></button>
         </div>
       ) : null}
     </div>
