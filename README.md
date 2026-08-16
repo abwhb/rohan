@@ -16,6 +16,29 @@ Open [Rohan Study Tracker](outputs/01a00a8d-4444-79b2-a191-e78d8bb1e883/rohan-st
 
 Videos count only when they are followed by recall and exam-question practice.
 
+## Generate a Gemini voice lesson
+
+The first version creates a lesson transcript with Gemini and then converts it into a 24 kHz WAV lesson using Gemini text-to-speech.
+
+```bash
+npm install
+cp .env.example .env
+```
+
+Put a newly rotated key in `.env`; never reuse or commit a key that has appeared in a message or screenshot. Then run:
+
+```bash
+npm run voice-lesson -- --spec lesson-specs/day-01-math-p1-quadratics.json
+```
+
+Generated audio, transcript, and metadata are written under `lessons/generated/` and ignored by Git. To validate a lesson specification without sending an API request:
+
+```bash
+npm run voice-lesson -- --spec lesson-specs/day-01-math-p1-quadratics.json --dry-run
+```
+
+The defaults are configurable in `.env`. The implementation follows Google's current [Gemini text-to-speech documentation](https://ai.google.dev/gemini-api/docs/speech-generation) and uses the Interactions API rather than the older `generateContent` schema.
+
 ## Project documents
 
 - [Research brief and 45-day plan](docs/research-and-45-day-plan.md)
@@ -27,4 +50,5 @@ Videos count only when they are followed by recall and exam-question practice.
 - First seven adaptive daily question packs
 - Teacher review and marking workflow
 - Student web dashboard and authentication
+- Interactive two-way voice tutoring with the Gemini Live API
 - Email reminders, followed by an approved WhatsApp integration

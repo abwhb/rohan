@@ -1,0 +1,17 @@
+{
+  "learner": "Rohan",
+  "subject": "Cambridge International AS Mathematics",
+  "paper": "9709/12 Pure Mathematics 1",
+  "topic": "Quadratics: the discriminant and completing the square",
+  "minutes": 7,
+  "objectives": [
+    "Use the discriminant to determine the number of real roots",
+    "Complete the square accurately",
+    "Connect completed-square form to the turning point and range"
+  ],
+  "priorMistakes": [
+    "Losing the negative sign in b squared minus 4ac",
+    "Forgetting to adjust the constant after completing the square"
+  ],
+  "teacherNotes": "Use British English and Cambridge 9709 notation. Keep arithmetic manageable so the focus stays on method."
+}
