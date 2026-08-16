@@ -6,10 +6,8 @@ import {
   BookOpen,
   Brain,
   Check,
-  ChevronRight,
   CircleAlert,
   ClipboardCheck,
-  Headphones,
   RotateCcw,
   Save,
   Sparkles,
@@ -18,6 +16,7 @@ import {
 import { ProgressRing } from "@/src/components/progress-ring";
 import { SessionLogger } from "@/src/components/session-logger";
 import { TopicLearningLab } from "@/src/components/topic-learning-lab";
+import { UrduVoiceCoach } from "@/src/components/urdu-voice-coach";
 import { topicLearningContent } from "@/src/data/topic-learning-content";
 import { getTopicMastery, getTopicStatus, statusLabels } from "@/src/lib/progress";
 import { cn, statusPillClass, ui } from "@/src/lib/ui";
@@ -34,7 +33,6 @@ interface TopicWorkspaceProps {
   onCompleteResource: (resourceId: string) => void;
   onLessonAttempt: (lessonId: string, isCorrect: boolean) => void;
   onLogSession: (session: StudySessionInput) => void;
-  onVoiceRequested: () => void;
 }
 
 const workIcons: Record<WorkBlock["kind"], typeof Brain> = {
@@ -55,7 +53,6 @@ export function TopicWorkspace({
   onCompleteResource,
   onLessonAttempt,
   onLogSession,
-  onVoiceRequested,
 }: TopicWorkspaceProps) {
   const [score, setScore] = useState(progress.latestScore ?? 70);
   const mastery = getTopicMastery(topic, progress);
@@ -215,17 +212,13 @@ export function TopicWorkspace({
             <small className="mt-2.5 block text-center text-[8px] text-[#879592]">{progress.attempts > 0 ? `${progress.attempts} scored attempt${progress.attempts === 1 ? "" : "s"}` : "No scored attempt yet"}</small>
           </form>
 
-          <section className="grid grid-cols-[auto_1fr] gap-[13px] rounded-[22px] bg-[#213e3b] p-[21px] text-[#f5faf8] shadow-[0_18px_45px_rgba(34,55,56,0.08)] min-[721px]:max-[960px]:col-span-full">
-            <span className="grid size-[42px] place-items-center rounded-[13px] bg-study-lime text-[#1e3936]"><Headphones aria-hidden="true" size={21} /></span>
-            <div>
-              <span className={cn(ui.eyebrow, "text-study-lime")}>Gemini voice</span>
-              <h2 className="mt-1 text-[17px] font-bold leading-[1.2] tracking-[-0.03em]">Listen before practice</h2>
-              <p className="mt-[7px] text-[9px] text-[#adc1bc]">Generate a short lesson mapped to this topic&apos;s objectives and common mistakes.</p>
-            </div>
-            <button className="col-span-full mt-1 flex w-full cursor-pointer items-center justify-between rounded-[11px] border-0 bg-study-lime px-3 py-2.5 text-[10px] font-[850] text-[#213e3b]" onClick={onVoiceRequested} type="button">
-              Prepare lesson <ChevronRight aria-hidden="true" size={17} />
-            </button>
-          </section>
+          {learningContent ? (
+            <UrduVoiceCoach
+              completed={progress.completedResources.includes(`voice-${learningContent.urduLesson.id}`)}
+              lesson={learningContent.urduLesson}
+              onComplete={() => onCompleteResource(`voice-${learningContent.urduLesson.id}`)}
+            />
+          ) : null}
         </aside>
       </div>
     </section>

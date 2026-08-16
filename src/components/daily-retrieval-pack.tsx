@@ -5,23 +5,29 @@ import { ArrowRight, Brain, CheckCircle2, RotateCcw, XCircle } from "lucide-reac
 
 import { subjectById } from "@/src/data/curriculum";
 import { topicLearningContent } from "@/src/data/topic-learning-content";
+import { getLocalDateKey } from "@/src/lib/daily-plan";
+import { buildDailyQuestion } from "@/src/lib/question-generator";
 import { cn, ui } from "@/src/lib/ui";
 import type { StudyTopic, TopicProgress } from "@/src/types/study";
 
 interface DailyRetrievalPackProps {
   getProgress: (topicId: string) => TopicProgress;
-  onLessonAttempt: (topicId: string, lessonId: string, isCorrect: boolean) => void;
+  onQuestionAttempt: (topicId: string, questionId: string, isCorrect: boolean) => void;
   onOpenTopic: (topic: StudyTopic) => void;
   topics: StudyTopic[];
 }
 
 export function DailyRetrievalPack({
   getProgress,
-  onLessonAttempt,
+  onQuestionAttempt,
   onOpenTopic,
   topics,
 }: DailyRetrievalPackProps) {
   const [packTopics] = useState(topics);
+  const [dateKey] = useState(() => getLocalDateKey());
+  const [packQuestions] = useState(() =>
+    topics.map((topic, index) => buildDailyQuestion(topic.id, getLocalDateKey(), index)),
+  );
   const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -30,6 +36,7 @@ export function DailyRetrievalPack({
 
   const topic = packTopics[questionIndex];
   const content = topic ? topicLearningContent[topic.id] : null;
+  const question = packQuestions[questionIndex];
   const isComplete = questionIndex >= packTopics.length;
 
   function resetPack() {
@@ -67,18 +74,17 @@ export function DailyRetrievalPack({
     );
   }
 
-  if (!topic || !content) return null;
+  if (!topic || !content || !question) return null;
 
   const subject = subjectById[topic.subjectId];
-  const check = content.urduLesson.check;
-  const isCorrect = selectedAnswer === check.correctIndex;
-  const savedAttempt = getProgress(topic.id).lessonAttempts[content.urduLesson.id];
+  const isCorrect = selectedAnswer === question.correctIndex;
+  const savedAttempt = getProgress(topic.id).questionAttempts[question.id];
 
   return (
     <section className={cn(ui.panel, ui.panelPadding, "mt-5 overflow-hidden")} aria-label="Daily retrieval pack" key={round}>
       <div className={ui.sectionHeading}>
         <div>
-          <span className={ui.eyebrow}>Interleaved recall · 5 questions</span>
+          <span className={ui.eyebrow}>Generated for {dateKey} · 5 questions</span>
           <h2 className={ui.sectionTitle}>Daily retrieval pack</h2>
         </div>
         <span className={ui.subtleBadge}><Brain aria-hidden="true" size={15} /> {questionIndex + 1} of {packTopics.length}</span>
@@ -99,6 +105,7 @@ export function DailyRetrievalPack({
         <div className="rounded-[18px] p-5" style={{ backgroundColor: subject.softAccent }}>
           <span className="text-[8px] font-extrabold uppercase tracking-[0.09em]" style={{ color: subject.accent }}>{subject.shortName}</span>
           <h3 className="mt-1.5 text-[20px] font-bold tracking-[-0.035em]">{topic.title}</h3>
+          <span className="mt-2 inline-flex rounded-full bg-white/65 px-2.5 py-1.5 text-[8px] font-extrabold text-[#536965]">{question.skill}</span>
           <p className="mt-2 text-right text-[11px] leading-[1.9] text-[#536965]" dir="rtl" lang="ur">{content.urduLesson.summary}</p>
           <button className={cn(ui.secondaryButton, "mt-4 bg-white/65")} onClick={() => onOpenTopic(topic)} type="button">
             Review full lesson <ArrowRight aria-hidden="true" size={15} />
@@ -107,9 +114,9 @@ export function DailyRetrievalPack({
         </div>
 
         <div>
-          <strong className="block text-right text-[13px] leading-relaxed" dir="rtl" lang="ur">{check.prompt}</strong>
+          <strong className="block text-right text-[13px] leading-relaxed" dir="rtl" lang="ur">{question.prompt}</strong>
           <div className="mt-4 grid gap-2">
-            {check.options.map((option, index) => (
+            {question.options.map((option, index) => (
               <button
                 className={cn(
                   "rounded-[12px] border px-4 py-3 text-right text-[10px] leading-relaxed transition",
@@ -133,7 +140,7 @@ export function DailyRetrievalPack({
                 {isCorrect ? <CheckCircle2 aria-hidden="true" size={16} /> : <XCircle aria-hidden="true" size={16} />}
                 {isCorrect ? "Correct — evidence saved" : "Not yet — this topic will be prioritised"}
               </div>
-              <p className="mt-2 text-right" dir="rtl" lang="ur">{check.explanation}</p>
+              <p className="mt-2 text-right" dir="rtl" lang="ur">{question.explanation}</p>
               <button
                 className={cn(ui.primaryButton, "mt-3")}
                 onClick={() => {
@@ -155,7 +162,7 @@ export function DailyRetrievalPack({
                 if (selectedAnswer === null) return;
                 setSubmitted(true);
                 setResults((current) => [...current, isCorrect]);
-                onLessonAttempt(topic.id, content.urduLesson.id, isCorrect);
+                onQuestionAttempt(topic.id, question.id, isCorrect);
               }}
               type="button"
             >

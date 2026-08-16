@@ -4,6 +4,8 @@ A focused study system for Cambridge International AS Mathematics 9709 (Pure Mat
 
 The immediate goal is consistent, measurable study: 270 focused minutes per normal study day, active exam-question practice, rapid correction, and a visible mistake-review cycle.
 
+The daily allocation is 100 minutes Pure Mathematics 1, 75 minutes Mechanics, and 95 minutes Business. Those targets include retrieval, teaching, exam practice, and correction; breaks are additional.
+
 ## Run the React dashboard
 
 The student experience is a Next.js React dashboard styled with Tailwind CSS 4,
@@ -37,7 +39,9 @@ Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 - an adaptive daily queue that selects the weakest active topic in each subject;
 - verified Khan Academy and Cambridge-focused learning resources with compulsory active follow-ups for all 18 topics;
 - interactive Urdu explanations and saved quick-check attempts for every Math, Mechanics, and Business topic;
+- in-dashboard Urdu audio summaries and worked-step playback using the learner's device voice, with pause, resume, stop, and completion evidence;
 - a five-question daily retrieval pack that balances subjects and prioritises weak recall;
+- deterministic date-based question variants for all 18 topics, so the daily pack changes without requiring an AI request;
 - a focused-session log for minutes, questions, accuracy, mistake type, and a correction note;
 - daily focused-minute totals, study streaks, recent activity, and a queue that updates after each saved session;
 - objective-level topic checklists;
@@ -45,7 +49,7 @@ Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 - scored topic reviews and calculated mastery;
 - bounded learning evidence from completed resources and Urdu checks, with exam practice and marked scores retaining most of the mastery weight;
 - status filters for not started, learning, exam practice, and mastered; and
-- versioned local progress storage in the browser.
+- versioned local progress storage in the browser, including separate Urdu-lesson and daily-question evidence.
 
 The interface follows the Next.js App Router architecture so Gemini audio can remain behind a secure server boundary when in-dashboard playback is connected.
 

@@ -23,6 +23,7 @@ export function StudyDashboard() {
     saveScore,
     completeResource,
     recordLessonAttempt,
+    recordQuestionAttempt,
     logSession,
   } = useStudyProgress();
 
@@ -81,7 +82,7 @@ export function StudyDashboard() {
               }}
               onCompleteResource={(resourceId) => {
                 completeResource(selectedTopic.id, resourceId);
-                setNotice("Video recall completed. Now use the follow-up task to turn watching into marks.");
+                setNotice("Learning resource completed. Now use retrieval or exam practice to turn it into marks.");
               }}
               onLessonAttempt={(lessonId, isCorrect) => {
                 recordLessonAttempt(selectedTopic.id, lessonId, isCorrect);
@@ -93,11 +94,6 @@ export function StudyDashboard() {
               }}
               onToggleObjective={(objective) => toggleObjective(selectedTopic.id, objective)}
               onToggleWork={(workId) => toggleWork(selectedTopic.id, workId)}
-              onVoiceRequested={() =>
-                setNotice(
-                  `The ${selectedTopic.title} voice lesson is mapped. In-dashboard playback will connect through the secure server route next.`,
-                )
-              }
               progress={getProgress(selectedTopic.id)}
               subject={subjectById[selectedTopic.subjectId]}
               topic={selectedTopic}
@@ -105,8 +101,8 @@ export function StudyDashboard() {
           ) : activeView === "overview" ? (
             <OverviewView
               getProgress={getProgress}
-              onLessonAttempt={(topicId, lessonId, isCorrect) => {
-                recordLessonAttempt(topicId, lessonId, isCorrect);
+              onQuestionAttempt={(topicId, questionId, isCorrect) => {
+                recordQuestionAttempt(topicId, questionId, isCorrect);
                 setNotice(isCorrect ? "Retrieval answer correct — evidence saved." : "Attempt saved. This topic will move up future retrieval packs.");
               }}
               onOpenSubject={openSubject}

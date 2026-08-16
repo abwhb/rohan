@@ -19,11 +19,11 @@ interface OverviewViewProps {
   getProgress: (topicId: string) => TopicProgress;
   onOpenTopic: (topic: StudyTopic) => void;
   onOpenSubject: (subjectId: SubjectId) => void;
-  onLessonAttempt: (topicId: string, lessonId: string, isCorrect: boolean) => void;
+  onQuestionAttempt: (topicId: string, questionId: string, isCorrect: boolean) => void;
   sessions: StudySession[];
 }
 
-export function OverviewView({ getProgress, onLessonAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
+export function OverviewView({ getProgress, onQuestionAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
   let masteryTotal = 0;
   let masteredTopics = 0;
   let activeTopics = 0;
@@ -93,10 +93,11 @@ export function OverviewView({ getProgress, onLessonAttempt, onOpenTopic, onOpen
       <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
         <section className={cn(ui.panel, ui.panelPadding)}>
           <div className={ui.sectionHeading}>
-            <div>
-              <span className={ui.eyebrow}>Today&apos;s mission</span>
-              <h2 className={ui.sectionTitle}>Adaptive daily queue</h2>
-            </div>
+          <div>
+            <span className={ui.eyebrow}>Today&apos;s mission</span>
+            <h2 className={ui.sectionTitle}>Adaptive daily queue</h2>
+            <p className="mt-1.5 text-[9px] text-study-muted">100 min Pure · 75 min Mechanics · 95 min Business = 270 focused minutes</p>
+          </div>
             <span className={ui.subtleBadge}><Clock3 aria-hidden="true" size={15} /> {focusedMinutes}/{DAILY_FOCUS_TARGET} min logged</span>
           </div>
 
@@ -160,7 +161,7 @@ export function OverviewView({ getProgress, onLessonAttempt, onOpenTopic, onOpen
 
       <DailyRetrievalPack
         getProgress={getProgress}
-        onLessonAttempt={onLessonAttempt}
+        onQuestionAttempt={onQuestionAttempt}
         onOpenTopic={onOpenTopic}
         topics={retrievalTopics}
       />

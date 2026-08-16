@@ -54,6 +54,16 @@ export interface TopicLearningContent {
   urduLesson: UrduLesson;
 }
 
+export interface DailyQuestion {
+  id: string;
+  topicId: string;
+  skill: string;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 export interface StudySubject {
   id: SubjectId;
   shortName: string;
@@ -73,6 +83,7 @@ export interface TopicProgress {
   completedWork: string[];
   completedResources: string[];
   lessonAttempts: Record<string, { attempts: number; correct: number; updatedAt: string }>;
+  questionAttempts: Record<string, { attempts: number; correct: number; updatedAt: string }>;
   latestScore: number | null;
   attempts: number;
   updatedAt: string | null;
@@ -102,7 +113,7 @@ export interface StudySessionInput {
 }
 
 export interface StudyProgressState {
-  version: 2;
+  version: 3;
   topics: Record<string, TopicProgress>;
   sessions: StudySession[];
 }

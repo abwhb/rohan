@@ -11,6 +11,7 @@ function hasActivity(progress: TopicProgress) {
     progress.completedWork.length > 0 ||
     progress.completedResources.length > 0 ||
     Object.keys(progress.lessonAttempts).length > 0 ||
+    Object.keys(progress.questionAttempts).length > 0 ||
     progress.latestScore !== null
   );
 }
@@ -59,20 +60,28 @@ export function buildDailyRetrievalTopics(
     .sort((left, right) => {
       const leftProgress = getProgress(left.id);
       const rightProgress = getProgress(right.id);
-      const leftContent = topicLearningContent[left.id];
-      const rightContent = topicLearningContent[right.id];
-      const leftLesson = leftContent
-        ? leftProgress.lessonAttempts[leftContent.urduLesson.id]
-        : undefined;
-      const rightLesson = rightContent
-        ? rightProgress.lessonAttempts[rightContent.urduLesson.id]
-        : undefined;
-      const leftAccuracy = leftLesson ? leftLesson.correct / leftLesson.attempts : 1;
-      const rightAccuracy = rightLesson ? rightLesson.correct / rightLesson.attempts : 1;
+      const leftAttempts = [
+        ...Object.values(leftProgress.lessonAttempts),
+        ...Object.values(leftProgress.questionAttempts),
+      ];
+      const rightAttempts = [
+        ...Object.values(rightProgress.lessonAttempts),
+        ...Object.values(rightProgress.questionAttempts),
+      ];
+      const leftAttemptCount = leftAttempts.reduce((total, attempt) => total + attempt.attempts, 0);
+      const rightAttemptCount = rightAttempts.reduce((total, attempt) => total + attempt.attempts, 0);
+      const leftAccuracy = leftAttemptCount > 0
+        ? leftAttempts.reduce((total, attempt) => total + attempt.correct, 0) / leftAttemptCount
+        : 1;
+      const rightAccuracy = rightAttemptCount > 0
+        ? rightAttempts.reduce((total, attempt) => total + attempt.correct, 0) / rightAttemptCount
+        : 1;
 
-      if (leftLesson && rightLesson && leftAccuracy !== rightAccuracy) return leftAccuracy - rightAccuracy;
-      if (leftLesson && !rightLesson && leftAccuracy < 1) return -1;
-      if (!leftLesson && rightLesson && rightAccuracy < 1) return 1;
+      if (leftAttemptCount > 0 && rightAttemptCount > 0 && leftAccuracy !== rightAccuracy) {
+        return leftAccuracy - rightAccuracy;
+      }
+      if (leftAttemptCount > 0 && rightAttemptCount === 0 && leftAccuracy < 1) return -1;
+      if (leftAttemptCount === 0 && rightAttemptCount > 0 && rightAccuracy < 1) return 1;
 
       const masteryDifference =
         getTopicMastery(left, leftProgress) - getTopicMastery(right, rightProgress);
