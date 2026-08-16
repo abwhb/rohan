@@ -13,6 +13,19 @@ npm install
 npm run dev
 ```
 
+### Railway deployment
+
+The production build uses Next.js standalone output. Railway injects `PORT`, and
+the generated standalone server reads it automatically:
+
+```bash
+npm run build
+npm start
+```
+
+Keep `GEMINI_API_KEY` in Railway's service variables. Never expose it through a
+`NEXT_PUBLIC_` variable or commit it to the repository.
+
 Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 
 - complete subject and topic navigation;
