@@ -3,6 +3,7 @@ import { ArrowRight, BookCheck, Brain, Clock3, Flame, Target } from "lucide-reac
 import { ProgressRing } from "@/src/components/progress-ring";
 import { subjectById, subjects, topicById, topics, topicsBySubject } from "@/src/data/curriculum";
 import { getNextWork, getTopicMastery, getTopicStatus } from "@/src/lib/progress";
+import { cn, ui } from "@/src/lib/ui";
 import type { StudyTopic, SubjectId, TopicProgress } from "@/src/types/study";
 
 interface OverviewViewProps {
@@ -33,57 +34,59 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
 
   return (
     <>
-      <section className="overview-hero">
-        <div className="overview-hero__content">
-          <span className="eyebrow">Day 1 · Baseline and setup</span>
-          <h1>One topic at a time.<br />Every lost mark accounted for.</h1>
-          <p>
+      <section className="relative grid min-h-[312px] grid-cols-1 items-center overflow-hidden rounded-[23px] bg-[#22433f] p-6 text-[#f5faf8] shadow-[0_18px_45px_rgba(34,55,56,0.08)] min-[721px]:rounded-[30px] min-[721px]:p-[clamp(34px,5vw,60px)] min-[961px]:grid-cols-[minmax(0,1fr)_auto]">
+        <span aria-hidden="true" className="pointer-events-none absolute -right-[110px] -top-56 size-[420px] rounded-full border border-study-lime/20" />
+        <span aria-hidden="true" className="pointer-events-none absolute -bottom-[218px] right-5 size-[280px] rounded-full border border-study-lime/20" />
+        <div className="relative z-[1]">
+          <span className={cn(ui.eyebrow, "text-study-lime")}>Day 1 · Baseline and setup</span>
+          <h1 className="my-2 text-4xl font-bold leading-[1.02] tracking-[-0.055em] min-[721px]:mb-[15px] min-[721px]:text-[clamp(34px,4.2vw,57px)]">One topic at a time.<br />Every lost mark accounted for.</h1>
+          <p className="mb-6 max-w-[650px] text-sm text-[#bfd0cc]">
             Today is about honest measurement: establish the baseline, log the gaps, and start repairing the first weak method.
           </p>
-          <button className="primary-button" onClick={() => onOpenTopic(continueTopic)} type="button">
+          <button className={ui.primaryButton} onClick={() => onOpenTopic(continueTopic)} type="button">
             {activeTopics > 0 ? "Continue topic" : "Start Day 1"}
             <ArrowRight aria-hidden="true" size={18} />
           </button>
         </div>
-        <div className="overview-hero__score">
-          <ProgressRing accent="#c9ef6b" size="large" value={overallMastery} />
+        <div className="relative z-[1] mt-7 flex w-fit min-w-[255px] items-center gap-[19px] rounded-3xl border border-white/10 bg-white/[0.075] p-6 min-[961px]:ml-10 min-[961px]:mt-0">
+          <ProgressRing accent="#c9ef6b" size="large" tone="dark" value={overallMastery} />
           <div>
-            <strong>{masteredTopics} of {topics.length}</strong>
-            <span>topics mastered</span>
+            <strong className="block text-sm">{masteredTopics} of {topics.length}</strong>
+            <span className="block text-[10px] text-[#a8bdb8]">topics mastered</span>
           </div>
         </div>
       </section>
 
-      <section className="metric-grid" aria-label="Study summary">
-        <article className="metric-card">
-          <span className="metric-card__icon metric-card__icon--green"><Clock3 aria-hidden="true" size={20} /></span>
-          <div><span>Focused target</span><strong>4h 30m</strong><small>Breaks are extra</small></div>
+      <section className="mt-5 grid grid-cols-1 gap-3.5 min-[721px]:grid-cols-2 min-[1181px]:grid-cols-4" aria-label="Study summary">
+        <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
+          <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#dff2ed] text-[#31736d]"><Clock3 aria-hidden="true" size={20} /></span>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Focused target</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">4h 30m</strong><small className="block truncate text-[9px] text-[#85928f]">Breaks are extra</small></div>
         </article>
-        <article className="metric-card">
-          <span className="metric-card__icon metric-card__icon--orange"><Flame aria-hidden="true" size={20} /></span>
-          <div><span>Current streak</span><strong>Day 1</strong><small>Build the chain today</small></div>
+        <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
+          <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#fae8d7] text-[#bd6834]"><Flame aria-hidden="true" size={20} /></span>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Current streak</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">Day 1</strong><small className="block truncate text-[9px] text-[#85928f]">Build the chain today</small></div>
         </article>
-        <article className="metric-card">
-          <span className="metric-card__icon metric-card__icon--purple"><Brain aria-hidden="true" size={20} /></span>
-          <div><span>Topics active</span><strong>{activeTopics}</strong><small>{topics.length - activeTopics} waiting</small></div>
+        <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
+          <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#ece8fa] text-[#6756a6]"><Brain aria-hidden="true" size={20} /></span>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Topics active</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">{activeTopics}</strong><small className="block truncate text-[9px] text-[#85928f]">{topics.length - activeTopics} waiting</small></div>
         </article>
-        <article className="metric-card">
-          <span className="metric-card__icon metric-card__icon--blue"><BookCheck aria-hidden="true" size={20} /></span>
-          <div><span>Mastered</span><strong>{masteredTopics}</strong><small>Target: 80%+ evidence</small></div>
+        <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
+          <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#e2eefb] text-[#4873a8]"><BookCheck aria-hidden="true" size={20} /></span>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Mastered</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">{masteredTopics}</strong><small className="block truncate text-[9px] text-[#85928f]">Target: 80%+ evidence</small></div>
         </article>
       </section>
 
-      <div className="overview-columns">
-        <section className="panel today-panel">
-          <div className="section-heading">
+      <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
+        <section className={cn(ui.panel, ui.panelPadding)}>
+          <div className={ui.sectionHeading}>
             <div>
-              <span className="eyebrow">Today&apos;s mission</span>
-              <h2>Three subject moves</h2>
+              <span className={ui.eyebrow}>Today&apos;s mission</span>
+              <h2 className={ui.sectionTitle}>Three subject moves</h2>
             </div>
-            <span className="time-badge"><Clock3 aria-hidden="true" size={15} /> 230 min + correction</span>
+            <span className={ui.subtleBadge}><Clock3 aria-hidden="true" size={15} /> 230 min + correction</span>
           </div>
 
-          <div className="mission-list">
+          <div className="grid">
             {missionTopicIds.map((topicId, index) => {
               const item = topicById[topicId];
               const subject = subjectById[item.subjectId];
@@ -91,32 +94,32 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
               const nextWork = getNextWork(item, progress) ?? item.work[0];
 
               return (
-                <button className="mission-row" key={item.id} onClick={() => onOpenTopic(item)} type="button">
-                  <span className="mission-row__index" style={{ backgroundColor: subject.softAccent, color: subject.accent }}>
+                <button className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3.5 border-0 border-t border-[#edf0ed] bg-transparent px-1 py-[15px] text-left first:border-t-0" key={item.id} onClick={() => onOpenTopic(item)} type="button">
+                  <span className="grid size-[38px] place-items-center rounded-xl text-xs font-[850]" style={{ backgroundColor: subject.softAccent, color: subject.accent }}>
                     {index + 1}
                   </span>
-                  <span className="mission-row__copy">
-                    <small>{subject.shortName} · {subject.dailyMinutes} min block</small>
-                    <strong>{item.title}</strong>
-                    <span>{nextWork.description}</span>
+                  <span className="min-w-0">
+                    <small className="block text-[8px] font-bold uppercase tracking-[0.08em] text-[#879490]">{subject.shortName} · {subject.dailyMinutes} min block</small>
+                    <strong className="my-0.5 block text-[13px] transition group-hover:text-[#2e746c]">{item.title}</strong>
+                    <span className="block truncate text-[10px] text-study-muted">{nextWork.description}</span>
                   </span>
-                  <ArrowRight aria-hidden="true" size={18} />
+                  <ArrowRight aria-hidden="true" className="text-[#8a9a97]" size={18} />
                 </button>
               );
             })}
           </div>
         </section>
 
-        <aside className="panel readiness-panel">
-          <div className="section-heading">
+        <aside className={cn(ui.panel, ui.panelPadding)}>
+          <div className={ui.sectionHeading}>
             <div>
-              <span className="eyebrow">Readiness</span>
-              <h2>Subject map</h2>
+              <span className={ui.eyebrow}>Readiness</span>
+              <h2 className={ui.sectionTitle}>Subject map</h2>
             </div>
             <Target aria-hidden="true" size={21} />
           </div>
 
-          <div className="readiness-list">
+          <div className="grid gap-[9px]">
             {subjects.map((subject) => {
               const subjectTopics = topicsBySubject(subject.id);
               let total = 0;
@@ -129,16 +132,16 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
               const average = Math.round(total / subjectTopics.length);
 
               return (
-                <button className="readiness-row" key={subject.id} onClick={() => onOpenSubject(subject.id)} type="button">
-                  <div className="readiness-row__top">
-                    <span className="subject-dot" style={{ backgroundColor: subject.accent }} />
-                    <strong>{subject.shortName}</strong>
-                    <span>{average}%</span>
+                <button className="w-full cursor-pointer rounded-[13px] border border-transparent bg-[#f7f8f5] p-3 text-left transition hover:border-study-line hover:bg-white" key={subject.id} onClick={() => onOpenSubject(subject.id)} type="button">
+                  <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
+                    <span className="size-[7px] rounded-full" style={{ backgroundColor: subject.accent }} />
+                    <strong className="text-[10px]">{subject.shortName}</strong>
+                    <span className="text-[10px]">{average}%</span>
                   </div>
-                  <div className="progress-track progress-track--slim" aria-hidden="true">
-                    <span style={{ width: `${average}%`, backgroundColor: subject.accent }} />
+                  <div className={cn(ui.progressTrack, "my-[9px] h-1")} aria-hidden="true">
+                    <span className="block h-full rounded-[inherit] transition-[width] duration-300" style={{ width: `${average}%`, backgroundColor: subject.accent }} />
                   </div>
-                  <small>{mastered}/{subjectTopics.length} topics mastered · {subject.examDate}</small>
+                  <small className="text-[8px] text-[#82908d]">{mastered}/{subjectTopics.length} topics mastered · {subject.examDate}</small>
                 </button>
               );
             })}

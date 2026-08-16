@@ -6,7 +6,9 @@ The immediate goal is consistent, measurable study: 270 focused minutes per norm
 
 ## Run the React dashboard
 
-The student experience is a Next.js React dashboard with all 18 top-level syllabus topics across Pure Mathematics 1, Mechanics, and AS Business.
+The student experience is a Next.js React dashboard styled with Tailwind CSS 4,
+with all 18 top-level syllabus topics across Pure Mathematics 1, Mechanics, and
+AS Business.
 
 ```bash
 npm install
