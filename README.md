@@ -4,7 +4,27 @@ A focused study system for Cambridge International AS Mathematics 9709 (Pure Mat
 
 The immediate goal is consistent, measurable study: 270 focused minutes per normal study day, active exam-question practice, rapid correction, and a visible mistake-review cycle.
 
-## Start with the Excel MVP
+## Run the React dashboard
+
+The student experience is a Next.js React dashboard with all 18 top-level syllabus topics across Pure Mathematics 1, Mechanics, and AS Business.
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
+
+- complete subject and topic navigation;
+- objective-level topic checklists;
+- topic-specific retrieval, teaching, exam-practice, and correction blocks;
+- scored topic reviews and calculated mastery;
+- status filters for not started, learning, exam practice, and mastered; and
+- versioned local progress storage in the browser.
+
+The interface follows the Next.js App Router architecture so Gemini audio can remain behind a secure server boundary when in-dashboard playback is connected.
+
+## Use the Excel teacher companion
 
 Open [Rohan Study Tracker](outputs/01a00a8d-4444-79b2-a191-e78d8bb1e883/rohan-study-tracker.xlsx).
 
@@ -49,6 +69,6 @@ The defaults are configurable in `.env`. The implementation follows Google's cur
 - Diagnostic-paper intake and objective-level scoring
 - First seven adaptive daily question packs
 - Teacher review and marking workflow
-- Student web dashboard and authentication
+- Authentication and cross-device progress sync
 - Interactive two-way voice tutoring with the Gemini Live API
 - Email reminders, followed by an approved WhatsApp integration
