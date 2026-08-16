@@ -34,6 +34,11 @@ Keep `GEMINI_API_KEY` in Railway's service variables. Never expose it through a
 Open [http://localhost:3000](http://localhost:3000). The dashboard provides:
 
 - complete subject and topic navigation;
+- an adaptive daily queue that selects the weakest active topic in each subject;
+- verified Khan Academy and Cambridge-focused video resources with compulsory active follow-ups;
+- interactive Urdu explanations and saved quick-check attempts for the starter Math, Mechanics, and Business topics;
+- a focused-session log for minutes, questions, accuracy, mistake type, and a correction note;
+- daily focused-minute totals, study streaks, recent activity, and a queue that updates after each saved session;
 - objective-level topic checklists;
 - topic-specific retrieval, teaching, exam-practice, and correction blocks;
 - scored topic reviews and calculated mastery;

@@ -16,9 +16,12 @@ import {
 } from "lucide-react";
 
 import { ProgressRing } from "@/src/components/progress-ring";
+import { SessionLogger } from "@/src/components/session-logger";
+import { TopicLearningLab } from "@/src/components/topic-learning-lab";
+import { topicLearningContent } from "@/src/data/topic-learning-content";
 import { getTopicMastery, getTopicStatus, statusLabels } from "@/src/lib/progress";
 import { cn, statusPillClass, ui } from "@/src/lib/ui";
-import type { StudySubject, StudyTopic, TopicProgress, WorkBlock } from "@/src/types/study";
+import type { StudySessionInput, StudySubject, StudyTopic, TopicProgress, WorkBlock } from "@/src/types/study";
 
 interface TopicWorkspaceProps {
   topic: StudyTopic;
@@ -28,6 +31,9 @@ interface TopicWorkspaceProps {
   onToggleObjective: (objective: string) => void;
   onToggleWork: (workId: string) => void;
   onSaveScore: (score: number) => void;
+  onCompleteResource: (resourceId: string) => void;
+  onLessonAttempt: (lessonId: string, isCorrect: boolean) => void;
+  onLogSession: (session: StudySessionInput) => void;
   onVoiceRequested: () => void;
 }
 
@@ -46,6 +52,9 @@ export function TopicWorkspace({
   onToggleObjective,
   onToggleWork,
   onSaveScore,
+  onCompleteResource,
+  onLessonAttempt,
+  onLogSession,
   onVoiceRequested,
 }: TopicWorkspaceProps) {
   const [score, setScore] = useState(progress.latestScore ?? 70);
@@ -55,6 +64,7 @@ export function TopicWorkspace({
     .filter((item) => progress.completedWork.includes(item.id))
     .reduce((sum, item) => sum + item.minutes, 0);
   const totalMinutes = topic.work.reduce((sum, item) => sum + item.minutes, 0);
+  const learningContent = topicLearningContent[topic.id];
 
   return (
     <section
@@ -78,6 +88,15 @@ export function TopicWorkspace({
         </div>
         <ProgressRing accent={subject.accent} size="large" value={mastery} />
       </header>
+
+      {learningContent ? (
+        <TopicLearningLab
+          content={learningContent}
+          onCompleteVideo={onCompleteResource}
+          onLessonAttempt={onLessonAttempt}
+          progress={progress}
+        />
+      ) : null}
 
       <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.65fr)]">
         <div className="grid content-start gap-5">
@@ -156,6 +175,8 @@ export function TopicWorkspace({
         </div>
 
         <aside className="grid grid-cols-1 content-start gap-5 min-[721px]:grid-cols-2 min-[961px]:grid-cols-3 min-[1181px]:grid-cols-1">
+          <SessionLogger onLog={onLogSession} progress={progress} topic={topic} />
+
           <section className={cn(ui.panel, ui.panelPadding, "relative overflow-hidden")}>
             <span className="mb-[18px] grid size-[39px] place-items-center rounded-xl bg-[var(--subject-soft)] text-[var(--subject-accent)]"><CircleAlert aria-hidden="true" size={19} /></span>
             <span className={ui.eyebrow}>Exam focus</span>

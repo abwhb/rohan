@@ -3,6 +3,8 @@ import type { StudyTopic, TopicProgress, TopicStatus } from "@/src/types/study";
 export const emptyTopicProgress: TopicProgress = {
   completedObjectives: [],
   completedWork: [],
+  completedResources: [],
+  lessonAttempts: {},
   latestScore: null,
   attempts: 0,
   updatedAt: null,

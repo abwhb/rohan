@@ -3,19 +3,44 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 import { emptyTopicProgress } from "@/src/lib/progress";
-import type { StudyProgressState, TopicProgress } from "@/src/types/study";
+import type { StudyProgressState, StudySessionInput, TopicProgress } from "@/src/types/study";
 
 const STORAGE_KEY = "rohan-study-progress-v1";
 const CHANGE_EVENT = "rohan-study-progress-change";
 
-const emptyState: StudyProgressState = { version: 1, topics: {} };
+const emptyState: StudyProgressState = { version: 2, topics: {}, sessions: [] };
 let cachedRaw: string | null | undefined;
 let cachedState = emptyState;
 
-function isProgressState(value: unknown): value is StudyProgressState {
-  if (!value || typeof value !== "object") return false;
-  const state = value as Partial<StudyProgressState>;
-  return state.version === 1 && typeof state.topics === "object" && state.topics !== null;
+function normaliseTopicProgress(value: unknown): TopicProgress {
+  if (!value || typeof value !== "object") return emptyTopicProgress;
+
+  const progress = value as Partial<TopicProgress>;
+  return {
+    completedObjectives: Array.isArray(progress.completedObjectives) ? progress.completedObjectives : [],
+    completedWork: Array.isArray(progress.completedWork) ? progress.completedWork : [],
+    completedResources: Array.isArray(progress.completedResources) ? progress.completedResources : [],
+    lessonAttempts:
+      progress.lessonAttempts && typeof progress.lessonAttempts === "object" ? progress.lessonAttempts : {},
+    latestScore: typeof progress.latestScore === "number" ? progress.latestScore : null,
+    attempts: typeof progress.attempts === "number" ? progress.attempts : 0,
+    updatedAt: typeof progress.updatedAt === "string" ? progress.updatedAt : null,
+  };
+}
+
+function normaliseState(value: unknown): StudyProgressState {
+  if (!value || typeof value !== "object") return emptyState;
+
+  const state = value as { topics?: unknown; sessions?: unknown };
+  if (!state.topics || typeof state.topics !== "object") return emptyState;
+
+  return {
+    version: 2,
+    topics: Object.fromEntries(
+      Object.entries(state.topics).map(([topicId, progress]) => [topicId, normaliseTopicProgress(progress)]),
+    ),
+    sessions: Array.isArray(state.sessions) ? state.sessions : [],
+  };
 }
 
 function getSnapshot(): StudyProgressState {
@@ -32,7 +57,7 @@ function getSnapshot(): StudyProgressState {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    cachedState = isProgressState(parsed) ? parsed : emptyState;
+    cachedState = normaliseState(parsed);
   } catch {
     cachedState = emptyState;
   }
@@ -71,7 +96,8 @@ function updateTopic(topicId: string, updater: (current: TopicProgress) => Topic
   const nextTopic = updater(currentTopic);
 
   writeState({
-    version: 1,
+    ...currentState,
+    version: 2,
     topics: {
       ...currentState.topics,
       [topicId]: { ...nextTopic, updatedAt: new Date().toISOString() },
@@ -120,7 +146,79 @@ export function useStudyProgress() {
     }));
   }, []);
 
+  const completeResource = useCallback((topicId: string, resourceId: string) => {
+    updateTopic(topicId, (current) => ({
+      ...current,
+      completedResources: current.completedResources.includes(resourceId)
+        ? current.completedResources
+        : [...current.completedResources, resourceId],
+    }));
+  }, []);
+
+  const recordLessonAttempt = useCallback((topicId: string, lessonId: string, isCorrect: boolean) => {
+    updateTopic(topicId, (current) => {
+      const previous = current.lessonAttempts[lessonId] ?? { attempts: 0, correct: 0, updatedAt: "" };
+      return {
+        ...current,
+        lessonAttempts: {
+          ...current.lessonAttempts,
+          [lessonId]: {
+            attempts: previous.attempts + 1,
+            correct: previous.correct + (isCorrect ? 1 : 0),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  }, []);
+
+  const logSession = useCallback((input: StudySessionInput) => {
+    const currentState = getSnapshot();
+    const currentTopic = currentState.topics[input.topicId] ?? emptyTopicProgress;
+    const now = new Date();
+    const focusedMinutes = Math.max(1, Math.min(240, Math.round(input.focusedMinutes)));
+    const questionsAttempted = Math.max(0, Math.round(input.questionsAttempted));
+    const correctAnswers = Math.max(0, Math.min(questionsAttempted, Math.round(input.correctAnswers)));
+    const sessionId = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${now.getTime()}`;
+
+    writeState({
+      version: 2,
+      topics: {
+        ...currentState.topics,
+        [input.topicId]: {
+          ...currentTopic,
+          completedWork: currentTopic.completedWork.includes(input.workId)
+            ? currentTopic.completedWork
+            : [...currentTopic.completedWork, input.workId],
+          updatedAt: now.toISOString(),
+        },
+      },
+      sessions: [
+        ...currentState.sessions,
+        {
+          ...input,
+          id: sessionId,
+          date: now.toLocaleDateString("en-CA"),
+          focusedMinutes,
+          questionsAttempted,
+          correctAnswers,
+          createdAt: now.toISOString(),
+        },
+      ].slice(-1000),
+    });
+  }, []);
+
   const resetProgress = useCallback(() => writeState(emptyState), []);
 
-  return { state, getProgress, toggleObjective, toggleWork, saveScore, resetProgress };
+  return {
+    state,
+    getProgress,
+    toggleObjective,
+    toggleWork,
+    saveScore,
+    completeResource,
+    recordLessonAttempt,
+    logSession,
+    resetProgress,
+  };
 }

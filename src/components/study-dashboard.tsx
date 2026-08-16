@@ -15,7 +15,16 @@ export function StudyDashboard() {
   const [activeView, setActiveView] = useState<DashboardView>("overview");
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const { getProgress, toggleObjective, toggleWork, saveScore } = useStudyProgress();
+  const {
+    state,
+    getProgress,
+    toggleObjective,
+    toggleWork,
+    saveScore,
+    completeResource,
+    recordLessonAttempt,
+    logSession,
+  } = useStudyProgress();
 
   const selectedTopic = selectedTopicId ? topicById[selectedTopicId] : null;
 
@@ -70,6 +79,18 @@ export function StudyDashboard() {
                 saveScore(selectedTopic.id, score);
                 setNotice(`${selectedTopic.title} score saved. Your mastery has been recalculated.`);
               }}
+              onCompleteResource={(resourceId) => {
+                completeResource(selectedTopic.id, resourceId);
+                setNotice("Video recall completed. Now use the follow-up task to turn watching into marks.");
+              }}
+              onLessonAttempt={(lessonId, isCorrect) => {
+                recordLessonAttempt(selectedTopic.id, lessonId, isCorrect);
+                setNotice(isCorrect ? "Urdu quick check correct — evidence saved." : "Attempt saved. Review the steps and try again.");
+              }}
+              onLogSession={(session) => {
+                logSession(session);
+                setNotice(`${session.focusedMinutes} focused minutes saved for ${selectedTopic.title}.`);
+              }}
               onToggleObjective={(objective) => toggleObjective(selectedTopic.id, objective)}
               onToggleWork={(workId) => toggleWork(selectedTopic.id, workId)}
               onVoiceRequested={() =>
@@ -82,7 +103,12 @@ export function StudyDashboard() {
               topic={selectedTopic}
             />
           ) : activeView === "overview" ? (
-            <OverviewView getProgress={getProgress} onOpenSubject={openSubject} onOpenTopic={openTopic} />
+            <OverviewView
+              getProgress={getProgress}
+              onOpenSubject={openSubject}
+              onOpenTopic={openTopic}
+              sessions={state.sessions}
+            />
           ) : (
             <SubjectView
               getProgress={getProgress}
