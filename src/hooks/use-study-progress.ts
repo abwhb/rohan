@@ -3,20 +3,15 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 import { emptyTopicProgress } from "@/src/lib/progress";
-import type { StudyProgressState, TopicProgress } from "@/src/types/study";
+import { emptyStudyState, normaliseStudyState } from "@/src/lib/study-state";
+import type { StudyProgressState, StudySessionInput, TopicProgress } from "@/src/types/study";
 
 const STORAGE_KEY = "rohan-study-progress-v1";
 const CHANGE_EVENT = "rohan-study-progress-change";
 
-const emptyState: StudyProgressState = { version: 1, topics: {} };
+const emptyState = emptyStudyState;
 let cachedRaw: string | null | undefined;
 let cachedState = emptyState;
-
-function isProgressState(value: unknown): value is StudyProgressState {
-  if (!value || typeof value !== "object") return false;
-  const state = value as Partial<StudyProgressState>;
-  return state.version === 1 && typeof state.topics === "object" && state.topics !== null;
-}
 
 function getSnapshot(): StudyProgressState {
   if (typeof window === "undefined") return emptyState;
@@ -32,7 +27,7 @@ function getSnapshot(): StudyProgressState {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    cachedState = isProgressState(parsed) ? parsed : emptyState;
+    cachedState = normaliseStudyState(parsed);
   } catch {
     cachedState = emptyState;
   }
@@ -71,7 +66,8 @@ function updateTopic(topicId: string, updater: (current: TopicProgress) => Topic
   const nextTopic = updater(currentTopic);
 
   writeState({
-    version: 1,
+    ...currentState,
+    version: 3,
     topics: {
       ...currentState.topics,
       [topicId]: { ...nextTopic, updatedAt: new Date().toISOString() },
@@ -120,7 +116,101 @@ export function useStudyProgress() {
     }));
   }, []);
 
-  const resetProgress = useCallback(() => writeState(emptyState), []);
+  const completeResource = useCallback((topicId: string, resourceId: string) => {
+    updateTopic(topicId, (current) => ({
+      ...current,
+      completedResources: current.completedResources.includes(resourceId)
+        ? current.completedResources
+        : [...current.completedResources, resourceId],
+    }));
+  }, []);
 
-  return { state, getProgress, toggleObjective, toggleWork, saveScore, resetProgress };
+  const recordLessonAttempt = useCallback((topicId: string, lessonId: string, isCorrect: boolean) => {
+    updateTopic(topicId, (current) => {
+      const previous = current.lessonAttempts[lessonId] ?? { attempts: 0, correct: 0, updatedAt: "" };
+      return {
+        ...current,
+        lessonAttempts: {
+          ...current.lessonAttempts,
+          [lessonId]: {
+            attempts: previous.attempts + 1,
+            correct: previous.correct + (isCorrect ? 1 : 0),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  }, []);
+
+  const recordQuestionAttempt = useCallback((topicId: string, questionId: string, isCorrect: boolean) => {
+    updateTopic(topicId, (current) => {
+      const previous = current.questionAttempts[questionId] ?? { attempts: 0, correct: 0, updatedAt: "" };
+      return {
+        ...current,
+        questionAttempts: {
+          ...current.questionAttempts,
+          [questionId]: {
+            attempts: previous.attempts + 1,
+            correct: previous.correct + (isCorrect ? 1 : 0),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  }, []);
+
+  const logSession = useCallback((input: StudySessionInput) => {
+    const currentState = getSnapshot();
+    const currentTopic = currentState.topics[input.topicId] ?? emptyTopicProgress;
+    const now = new Date();
+    const focusedMinutes = Math.max(1, Math.min(240, Math.round(input.focusedMinutes)));
+    const questionsAttempted = Math.max(0, Math.round(input.questionsAttempted));
+    const correctAnswers = Math.max(0, Math.min(questionsAttempted, Math.round(input.correctAnswers)));
+    const sessionId = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${now.getTime()}`;
+
+    writeState({
+      version: 3,
+      topics: {
+        ...currentState.topics,
+        [input.topicId]: {
+          ...currentTopic,
+          completedWork: currentTopic.completedWork.includes(input.workId)
+            ? currentTopic.completedWork
+            : [...currentTopic.completedWork, input.workId],
+          updatedAt: now.toISOString(),
+        },
+      },
+      sessions: [
+        ...currentState.sessions,
+        {
+          ...input,
+          id: sessionId,
+          date: now.toLocaleDateString("en-CA"),
+          focusedMinutes,
+          questionsAttempted,
+          correctAnswers,
+          createdAt: now.toISOString(),
+        },
+      ].slice(-1000),
+    });
+  }, []);
+
+  const resetProgress = useCallback(() => writeState(emptyState), []);
+  const replaceState = useCallback((nextState: StudyProgressState) => {
+    writeState(normaliseStudyState(nextState));
+  }, []);
+
+  return {
+    state,
+    getProgress,
+    toggleObjective,
+    toggleWork,
+    saveScore,
+    completeResource,
+    recordLessonAttempt,
+    recordQuestionAttempt,
+    logSession,
+    replaceState,
+    resetProgress,
+  };
 }

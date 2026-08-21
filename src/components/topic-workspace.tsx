@@ -6,19 +6,21 @@ import {
   BookOpen,
   Brain,
   Check,
-  ChevronRight,
   CircleAlert,
   ClipboardCheck,
-  Headphones,
   RotateCcw,
   Save,
   Sparkles,
 } from "lucide-react";
 
 import { ProgressRing } from "@/src/components/progress-ring";
+import { SessionLogger } from "@/src/components/session-logger";
+import { TopicLearningLab } from "@/src/components/topic-learning-lab";
+import { UrduVoiceCoach } from "@/src/components/urdu-voice-coach";
+import { topicLearningContent } from "@/src/data/topic-learning-content";
 import { getTopicMastery, getTopicStatus, statusLabels } from "@/src/lib/progress";
 import { cn, statusPillClass, ui } from "@/src/lib/ui";
-import type { StudySubject, StudyTopic, TopicProgress, WorkBlock } from "@/src/types/study";
+import type { StudySessionInput, StudySubject, StudyTopic, TopicProgress, WorkBlock } from "@/src/types/study";
 
 interface TopicWorkspaceProps {
   topic: StudyTopic;
@@ -28,7 +30,9 @@ interface TopicWorkspaceProps {
   onToggleObjective: (objective: string) => void;
   onToggleWork: (workId: string) => void;
   onSaveScore: (score: number) => void;
-  onVoiceRequested: () => void;
+  onCompleteResource: (resourceId: string) => void;
+  onLessonAttempt: (lessonId: string, isCorrect: boolean) => void;
+  onLogSession: (session: StudySessionInput) => void;
 }
 
 const workIcons: Record<WorkBlock["kind"], typeof Brain> = {
@@ -46,7 +50,9 @@ export function TopicWorkspace({
   onToggleObjective,
   onToggleWork,
   onSaveScore,
-  onVoiceRequested,
+  onCompleteResource,
+  onLessonAttempt,
+  onLogSession,
 }: TopicWorkspaceProps) {
   const [score, setScore] = useState(progress.latestScore ?? 70);
   const mastery = getTopicMastery(topic, progress);
@@ -55,6 +61,7 @@ export function TopicWorkspace({
     .filter((item) => progress.completedWork.includes(item.id))
     .reduce((sum, item) => sum + item.minutes, 0);
   const totalMinutes = topic.work.reduce((sum, item) => sum + item.minutes, 0);
+  const learningContent = topicLearningContent[topic.id];
 
   return (
     <section
@@ -78,6 +85,15 @@ export function TopicWorkspace({
         </div>
         <ProgressRing accent={subject.accent} size="large" value={mastery} />
       </header>
+
+      {learningContent ? (
+        <TopicLearningLab
+          content={learningContent}
+          onCompleteVideo={onCompleteResource}
+          onLessonAttempt={onLessonAttempt}
+          progress={progress}
+        />
+      ) : null}
 
       <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.65fr)]">
         <div className="grid content-start gap-5">
@@ -156,6 +172,8 @@ export function TopicWorkspace({
         </div>
 
         <aside className="grid grid-cols-1 content-start gap-5 min-[721px]:grid-cols-2 min-[961px]:grid-cols-3 min-[1181px]:grid-cols-1">
+          <SessionLogger onLog={onLogSession} progress={progress} topic={topic} />
+
           <section className={cn(ui.panel, ui.panelPadding, "relative overflow-hidden")}>
             <span className="mb-[18px] grid size-[39px] place-items-center rounded-xl bg-[var(--subject-soft)] text-[var(--subject-accent)]"><CircleAlert aria-hidden="true" size={19} /></span>
             <span className={ui.eyebrow}>Exam focus</span>
@@ -194,17 +212,13 @@ export function TopicWorkspace({
             <small className="mt-2.5 block text-center text-[8px] text-[#879592]">{progress.attempts > 0 ? `${progress.attempts} scored attempt${progress.attempts === 1 ? "" : "s"}` : "No scored attempt yet"}</small>
           </form>
 
-          <section className="grid grid-cols-[auto_1fr] gap-[13px] rounded-[22px] bg-[#213e3b] p-[21px] text-[#f5faf8] shadow-[0_18px_45px_rgba(34,55,56,0.08)] min-[721px]:max-[960px]:col-span-full">
-            <span className="grid size-[42px] place-items-center rounded-[13px] bg-study-lime text-[#1e3936]"><Headphones aria-hidden="true" size={21} /></span>
-            <div>
-              <span className={cn(ui.eyebrow, "text-study-lime")}>Gemini voice</span>
-              <h2 className="mt-1 text-[17px] font-bold leading-[1.2] tracking-[-0.03em]">Listen before practice</h2>
-              <p className="mt-[7px] text-[9px] text-[#adc1bc]">Generate a short lesson mapped to this topic&apos;s objectives and common mistakes.</p>
-            </div>
-            <button className="col-span-full mt-1 flex w-full cursor-pointer items-center justify-between rounded-[11px] border-0 bg-study-lime px-3 py-2.5 text-[10px] font-[850] text-[#213e3b]" onClick={onVoiceRequested} type="button">
-              Prepare lesson <ChevronRight aria-hidden="true" size={17} />
-            </button>
-          </section>
+          {learningContent ? (
+            <UrduVoiceCoach
+              completed={progress.completedResources.includes(`voice-${learningContent.urduLesson.id}`)}
+              lesson={learningContent.urduLesson}
+              onComplete={() => onCompleteResource(`voice-${learningContent.urduLesson.id}`)}
+            />
+          ) : null}
         </aside>
       </div>
     </section>

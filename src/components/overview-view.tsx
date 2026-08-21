@@ -1,20 +1,31 @@
-import { ArrowRight, BookCheck, Brain, Clock3, Flame, Target } from "lucide-react";
+import { ArrowRight, BookCheck, Brain, Clock3, Flame, History, Target } from "lucide-react";
 
+import { DailyRetrievalPack } from "@/src/components/daily-retrieval-pack";
 import { ProgressRing } from "@/src/components/progress-ring";
+import { TeacherInsights } from "@/src/components/teacher-insights";
 import { subjectById, subjects, topicById, topics, topicsBySubject } from "@/src/data/curriculum";
-import { getNextWork, getTopicMastery, getTopicStatus } from "@/src/lib/progress";
+import {
+  buildDailyPlan,
+  buildDailyRetrievalTopics,
+  DAILY_FOCUS_TARGET,
+  getFocusedMinutes,
+  getStudyStreak,
+  getTodaySessions,
+} from "@/src/lib/daily-plan";
+import { getTopicMastery, getTopicStatus } from "@/src/lib/progress";
 import { cn, ui } from "@/src/lib/ui";
-import type { StudyTopic, SubjectId, TopicProgress } from "@/src/types/study";
+import type { CloudRole, StudySession, StudyTopic, SubjectId, TopicProgress } from "@/src/types/study";
 
 interface OverviewViewProps {
   getProgress: (topicId: string) => TopicProgress;
+  cloudRole: CloudRole | null;
   onOpenTopic: (topic: StudyTopic) => void;
   onOpenSubject: (subjectId: SubjectId) => void;
+  onQuestionAttempt: (topicId: string, questionId: string, isCorrect: boolean) => void;
+  sessions: StudySession[];
 }
 
-const missionTopicIds = ["p1-quadratics", "b-environment", "m-forces"];
-
-export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: OverviewViewProps) {
+export function OverviewView({ cloudRole, getProgress, onQuestionAttempt, onOpenTopic, onOpenSubject, sessions }: OverviewViewProps) {
   let masteryTotal = 0;
   let masteredTopics = 0;
   let activeTopics = 0;
@@ -22,15 +33,20 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
   for (const item of topics) {
     const progress = getProgress(item.id);
     const mastery = getTopicMastery(item, progress);
+    const status = getTopicStatus(item, progress);
     masteryTotal += mastery;
-    if (getTopicStatus(item, progress) === "mastered") masteredTopics += 1;
-    if (mastery > 0) activeTopics += 1;
+    if (status === "mastered") masteredTopics += 1;
+    if (status !== "not-started") activeTopics += 1;
   }
 
   const overallMastery = Math.round(masteryTotal / topics.length);
-  const continueTopic =
-    topics.find((item) => getTopicMastery(item, getProgress(item.id)) > 0 && getTopicMastery(item, getProgress(item.id)) < 80) ??
-    topicById["p1-quadratics"];
+  const dailyPlan = buildDailyPlan(getProgress);
+  const retrievalTopics = buildDailyRetrievalTopics(getProgress);
+  const continueTopic = dailyPlan[0]?.topic ?? topicById["p1-quadratics"];
+  const focusedMinutes = getFocusedMinutes(sessions);
+  const todaySessions = getTodaySessions(sessions);
+  const streak = getStudyStreak(sessions);
+  const recentSessions = sessions.slice(-5).reverse();
 
   return (
     <>
@@ -38,13 +54,13 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
         <span aria-hidden="true" className="pointer-events-none absolute -right-[110px] -top-56 size-[420px] rounded-full border border-study-lime/20" />
         <span aria-hidden="true" className="pointer-events-none absolute -bottom-[218px] right-5 size-[280px] rounded-full border border-study-lime/20" />
         <div className="relative z-[1]">
-          <span className={cn(ui.eyebrow, "text-study-lime")}>Day 1 · Baseline and setup</span>
+          <span className={cn(ui.eyebrow, "text-study-lime")}>Today · Adaptive study plan</span>
           <h1 className="my-2 text-4xl font-bold leading-[1.02] tracking-[-0.055em] min-[721px]:mb-[15px] min-[721px]:text-[clamp(34px,4.2vw,57px)]">One topic at a time.<br />Every lost mark accounted for.</h1>
           <p className="mb-6 max-w-[650px] text-sm text-[#bfd0cc]">
-            Today is about honest measurement: establish the baseline, log the gaps, and start repairing the first weak method.
+            Your queue now follows the weakest active topic in each subject. Learn, retrieve, practise, then log the evidence.
           </p>
           <button className={ui.primaryButton} onClick={() => onOpenTopic(continueTopic)} type="button">
-            {activeTopics > 0 ? "Continue topic" : "Start Day 1"}
+            {focusedMinutes > 0 ? "Continue today's plan" : "Start today's plan"}
             <ArrowRight aria-hidden="true" size={18} />
           </button>
         </div>
@@ -60,11 +76,11 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
       <section className="mt-5 grid grid-cols-1 gap-3.5 min-[721px]:grid-cols-2 min-[1181px]:grid-cols-4" aria-label="Study summary">
         <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
           <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#dff2ed] text-[#31736d]"><Clock3 aria-hidden="true" size={20} /></span>
-          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Focused target</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">4h 30m</strong><small className="block truncate text-[9px] text-[#85928f]">Breaks are extra</small></div>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Focused today</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">{focusedMinutes} / {DAILY_FOCUS_TARGET}m</strong><small className="block truncate text-[9px] text-[#85928f]">4h 30m target · breaks extra</small></div>
         </article>
         <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
           <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#fae8d7] text-[#bd6834]"><Flame aria-hidden="true" size={20} /></span>
-          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Current streak</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">Day 1</strong><small className="block truncate text-[9px] text-[#85928f]">Build the chain today</small></div>
+          <div className="min-w-0"><span className="block text-[9px] font-bold uppercase text-study-muted">Current streak</span><strong className="my-px block text-xl leading-[1.15] tracking-[-0.03em]">{streak} day{streak === 1 ? "" : "s"}</strong><small className="block truncate text-[9px] text-[#85928f]">{todaySessions.length} sessions today</small></div>
         </article>
         <article className="flex min-w-0 items-center gap-3.5 rounded-[18px] border border-[#dae2de]/80 bg-white p-[19px] shadow-[0_7px_25px_rgba(43,62,63,0.045)]">
           <span className="grid size-[43px] shrink-0 place-items-center rounded-[13px] bg-[#ece8fa] text-[#6756a6]"><Brain aria-hidden="true" size={20} /></span>
@@ -76,32 +92,30 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
         </article>
       </section>
 
+      {cloudRole === "teacher" ? <TeacherInsights getProgress={getProgress} sessions={sessions} /> : null}
+
       <div className="mt-5 grid grid-cols-1 gap-5 min-[1181px]:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.75fr)]">
         <section className={cn(ui.panel, ui.panelPadding)}>
           <div className={ui.sectionHeading}>
-            <div>
-              <span className={ui.eyebrow}>Today&apos;s mission</span>
-              <h2 className={ui.sectionTitle}>Three subject moves</h2>
-            </div>
-            <span className={ui.subtleBadge}><Clock3 aria-hidden="true" size={15} /> 230 min + correction</span>
+          <div>
+            <span className={ui.eyebrow}>Today&apos;s mission</span>
+            <h2 className={ui.sectionTitle}>Adaptive daily queue</h2>
+            <p className="mt-1.5 text-[9px] text-study-muted">100 min Pure · 75 min Mechanics · 95 min Business = 270 focused minutes</p>
+          </div>
+            <span className={ui.subtleBadge}><Clock3 aria-hidden="true" size={15} /> {focusedMinutes}/{DAILY_FOCUS_TARGET} min logged</span>
           </div>
 
           <div className="grid">
-            {missionTopicIds.map((topicId, index) => {
-              const item = topicById[topicId];
-              const subject = subjectById[item.subjectId];
-              const progress = getProgress(item.id);
-              const nextWork = getNextWork(item, progress) ?? item.work[0];
-
+            {dailyPlan.map(({ subject, topic: item, work: nextWork, mastery, reason }, index) => {
               return (
                 <button className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3.5 border-0 border-t border-[#edf0ed] bg-transparent px-1 py-[15px] text-left first:border-t-0" key={item.id} onClick={() => onOpenTopic(item)} type="button">
                   <span className="grid size-[38px] place-items-center rounded-xl text-xs font-[850]" style={{ backgroundColor: subject.softAccent, color: subject.accent }}>
                     {index + 1}
                   </span>
                   <span className="min-w-0">
-                    <small className="block text-[8px] font-bold uppercase tracking-[0.08em] text-[#879490]">{subject.shortName} · {subject.dailyMinutes} min block</small>
+                    <small className="block text-[8px] font-bold uppercase tracking-[0.08em] text-[#879490]">{subject.shortName} · {subject.dailyMinutes} min · {reason}</small>
                     <strong className="my-0.5 block text-[13px] transition group-hover:text-[#2e746c]">{item.title}</strong>
-                    <span className="block truncate text-[10px] text-study-muted">{nextWork.description}</span>
+                    <span className="block truncate text-[10px] text-study-muted">{nextWork.description} · {mastery}% mastery</span>
                   </span>
                   <ArrowRight aria-hidden="true" className="text-[#8a9a97]" size={18} />
                 </button>
@@ -148,6 +162,59 @@ export function OverviewView({ getProgress, onOpenTopic, onOpenSubject }: Overvi
           </div>
         </aside>
       </div>
+
+      {cloudRole !== "teacher" ? (
+        <DailyRetrievalPack
+          getProgress={getProgress}
+          onQuestionAttempt={onQuestionAttempt}
+          onOpenTopic={onOpenTopic}
+          topics={retrievalTopics}
+        />
+      ) : null}
+
+      <section className={cn(ui.panel, ui.panelPadding, "mt-5")}>
+        <div className={ui.sectionHeading}>
+          <div>
+            <span className={ui.eyebrow}>Evidence log</span>
+            <h2 className={ui.sectionTitle}>Recent focused sessions</h2>
+          </div>
+          <History aria-hidden="true" size={21} />
+        </div>
+
+        {recentSessions.length > 0 ? (
+          <div className="grid gap-2 min-[721px]:grid-cols-2 min-[1181px]:grid-cols-3">
+            {recentSessions.map((session) => {
+              const item = topicById[session.topicId];
+              const subject = item ? subjectById[item.subjectId] : null;
+              const accuracy = session.questionsAttempted > 0
+                ? Math.round((session.correctAnswers / session.questionsAttempted) * 100)
+                : null;
+
+              return (
+                <button
+                  className="rounded-[14px] border border-study-line bg-[#f8f9f7] p-3.5 text-left transition hover:bg-white"
+                  disabled={!item}
+                  key={session.id}
+                  onClick={() => item && onOpenTopic(item)}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.08em]" style={{ color: subject?.accent }}>{subject?.shortName ?? "Study"}</span>
+                    <span className="text-[8px] text-study-muted">{session.date}</span>
+                  </div>
+                  <strong className="mt-1.5 block text-[11px]">{item?.title ?? session.topicId}</strong>
+                  <span className="mt-2 block text-[9px] text-study-muted">{session.focusedMinutes} focused min{accuracy === null ? "" : ` · ${accuracy}% accuracy`}</span>
+                  {session.note ? <small className="mt-2 block line-clamp-2 text-[8px] text-[#748481]">{session.note}</small> : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-[14px] border border-dashed border-[#ccd7d2] bg-[#f8f9f7] px-5 py-7 text-center text-[10px] text-study-muted">
+            No focused work logged yet. Open the first adaptive topic and save the session when the block ends.
+          </div>
+        )}
+      </section>
     </>
   );
 }

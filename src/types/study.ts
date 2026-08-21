@@ -1,4 +1,5 @@
 export type SubjectId = "pure-1" | "mechanics" | "business";
+export type CloudRole = "student" | "teacher";
 
 export type TopicStatus = "not-started" | "learning" | "exam-practice" | "mastered";
 
@@ -21,6 +22,49 @@ export interface StudyTopic {
   work: WorkBlock[];
 }
 
+export interface TopicVideoResource {
+  id: string;
+  title: string;
+  provider: string;
+  url: string;
+  durationMinutes: number;
+  whyItHelps: string;
+  followUp: string;
+}
+
+export interface UrduLessonStep {
+  title: string;
+  body: string;
+}
+
+export interface UrduLesson {
+  id: string;
+  title: string;
+  summary: string;
+  steps: UrduLessonStep[];
+  check: {
+    prompt: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+  };
+}
+
+export interface TopicLearningContent {
+  video: TopicVideoResource;
+  urduLesson: UrduLesson;
+}
+
+export interface DailyQuestion {
+  id: string;
+  topicId: string;
+  skill: string;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
 export interface StudySubject {
   id: SubjectId;
   shortName: string;
@@ -38,12 +82,39 @@ export interface StudySubject {
 export interface TopicProgress {
   completedObjectives: string[];
   completedWork: string[];
+  completedResources: string[];
+  lessonAttempts: Record<string, { attempts: number; correct: number; updatedAt: string }>;
+  questionAttempts: Record<string, { attempts: number; correct: number; updatedAt: string }>;
   latestScore: number | null;
   attempts: number;
   updatedAt: string | null;
 }
 
+export interface StudySession {
+  id: string;
+  date: string;
+  topicId: string;
+  workId: string;
+  focusedMinutes: number;
+  questionsAttempted: number;
+  correctAnswers: number;
+  mistakeType: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface StudySessionInput {
+  topicId: string;
+  workId: string;
+  focusedMinutes: number;
+  questionsAttempted: number;
+  correctAnswers: number;
+  mistakeType: string;
+  note: string;
+}
+
 export interface StudyProgressState {
-  version: 1;
+  version: 3;
   topics: Record<string, TopicProgress>;
+  sessions: StudySession[];
 }
