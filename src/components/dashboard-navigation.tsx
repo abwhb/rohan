@@ -72,7 +72,7 @@ export function DashboardNavigation({ activeView, onNavigate }: DashboardNavigat
           <Headphones aria-hidden="true" size={18} />
           <div>
             <strong className="block text-[11px] text-[#cedbd8]">Voice lessons</strong>
-            <span className="block text-[9px]">Gemini connection ready</span>
+            <span className="block text-[9px]">Urdu audio enabled</span>
           </div>
         </div>
         <div className="flex items-center gap-2.5 rounded-[13px] border border-white/[0.07] px-3 py-2.5 text-[#91a7a4]">
